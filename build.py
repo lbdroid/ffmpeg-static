@@ -5,12 +5,28 @@ import sys
 import urllib2
 import tarfile
 import time
+import subprocess
 
 # check python ver 2.6+
+if sys.version_info < (2, 6):
+    print('need python 2.6+')
+    sys.exit(0)
 
 # get cpu count
 import multiprocessing as mp
 cpuCount = mp.cpu_count()
+
+# check for xz and git
+p = subprocess.Popen('which xz', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+data = p.communicate()[0]
+if data.count('which') > 0:
+    print('unable to find xz')
+    sys.exit(0)
+p = subprocess.Popen('which git', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+data = p.communicate()[0]
+if data.count('which') > 0:
+    print('unable to find git')
+    sys.exit(0)
 
 # native
 cflagsopt = '-march=native'
@@ -45,7 +61,7 @@ ffmbc = 'FFmbc-0.7-rc7'
 
 #os.environ['ENV_ROOT'] = 'pwd'
 # source env.source
-ENV_ROOT = '/root/tmp/v2'
+ENV_ROOT = os.getcwd()
 TARGET_DIR = os.path.join(ENV_ROOT, 'target')
 BUILD_DIR = os.path.join(ENV_ROOT, 'build')
 BUILD_GIT_DIR = os.path.join(ENV_ROOT, 'sourcegit')
@@ -76,8 +92,7 @@ def cleanALL():
 
 def prewarn():
     print('\nneeded packages:\ngcc glibc-static git xz\n\n')
-    print('todo: add check for gcc, git xz')
-    x = 3
+    x = 2
     while x > 0:
         print(x)
         x = x - 1
