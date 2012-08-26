@@ -102,7 +102,7 @@ def prewarn():
 fileList = []
 for item in [
         yasm, zlib, bzip2, libpng, openjpeg, libogg, libvorbis, libtheora,
-        libvpx, faac, libaacplus, vo_aacenc, speex, lame, x264, xvid, utvideo, ffmbc
+        libvpx, faac, vo_aacenc, speex, lame, x264, xvid, utvideo, ffmbc
         ]:
     fileList.append('%s.tar.xz' % item)
 
@@ -322,7 +322,7 @@ def b_ffmpeg():
     confcmd += ' --enable-libutvideo'
     confcmd += ' --enable-libvo-aacenc'
     confcmd += ' --enable-libspeex'
-    confcmd += ' --enable-libaacplus'
+    #confcmd += ' --enable-libaacplus'
     confcmd += ' --disable-devices'
 
     os.system('make distclean')
@@ -383,7 +383,7 @@ def go_main():
     b_libtheora()
     b_libvpx()
     b_faac()
-    b_libaacplus()
+    #b_libaacplus()
     b_vo_aacenc()
     b_speex()
     b_lame()
