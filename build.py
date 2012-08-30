@@ -171,7 +171,7 @@ def git_x264():
         os.chdir(os.path.join(BUILD_GIT_DIR, 'x264'))
         os.system('git pull')
     else:
-        os.chdir(BUILD_DIR)
+        os.chdir(BUILD_GIT_DIR)
         os.system('git clone %s' % x264git)
 
 def git_x264_deploy():
