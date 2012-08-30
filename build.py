@@ -297,7 +297,9 @@ def b_lame():
 
 def b_x264():
     print('\n*** Building x264 ***\n')
-    os.chdir(os.path.join(BUILD_DIR, x264))
+    # TODO fix x264 tar.xz path to be 'x264'
+    #os.chdir(os.path.join(BUILD_DIR, x264))  # for tar.xz
+    os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
     #os.system('./configure --prefix=%s --enable-static --disable-shared --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
     os.system('./configure --prefix=%s --enable-static --disable-shared --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
     os.system('make -j %s && make install' % cpuCount)
