@@ -105,7 +105,7 @@ def prewarn():
 fileList = []
 for item in [
         yasm, zlib, bzip2, libpng, openjpeg, libogg, libvorbis, libtheora,
-        libvpx, faac, vo_aacenc, speex, lame, x264, xvid,
+        libvpx, faac, vo_aacenc, speex, lame, xvid,
         utvideo, ffmbc
         ]:
     fileList.append('%s.tar.xz' % item)
@@ -141,7 +141,7 @@ def f_decompressfiles():
             print('%s already uncompressed' % fileName)
     f_sync()
     git_ffmpeg()
-    #git_x264()
+    git_x264()
     f_sync()
 
 def f_sync():
@@ -190,7 +190,7 @@ def f_extractfiles():
         tar.extractall()
         tar.close()
     git_ffmpeg_deploy()
-    #git_x264_deploy()
+    git_x264_deploy()
     f_sync()
 
 def b_yasm():
@@ -419,7 +419,7 @@ def go_main():
 
 def go_ffmpeg():
     b_ffmpeg()
-    #b_ffmbc()
+    b_ffmbc()
 
 def run():
     try:
