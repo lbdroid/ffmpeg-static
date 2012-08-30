@@ -45,8 +45,11 @@ libogg = 'libogg-1.3.0'
 libvorbis = 'libvorbis-1.3.2'
 libtheora = 'libtheora-1.1.1'
 libvpx = 'libvpx-1.1.0'
+libxml2 = 'libxml2-2.8.0'
+expat = 'expat-2.1.0'
+fontconfig = 'fontconfig-2.10.1'
+freetype = 'freetype-2.4.10'
 faac = 'faac-1.28'
-libaacplus = 'libaacplus-2.0.2'
 vo_aacenc = 'vo-aacenc-0.1.2'
 speex = 'speex-1.2rc1'
 lame = 'lame-3.99.5'
@@ -102,7 +105,8 @@ def prewarn():
 fileList = []
 for item in [
         yasm, zlib, bzip2, libpng, openjpeg, libogg, libvorbis, libtheora,
-        libvpx, faac, vo_aacenc, speex, lame, x264, xvid, utvideo, ffmbc
+        libvpx, faac, vo_aacenc, speex, lame, x264, xvid,
+        utvideo, ffmbc
         ]:
     fileList.append('%s.tar.xz' % item)
 
@@ -243,20 +247,35 @@ def b_libvpx():
     os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
     os.system('make -j %s && make install' % cpuCount)
 
+def b_expat():
+    print('\n*** Building expat ***\n')
+    os.chdir(os.path.join(BUILD_DIR, expat))
+    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_libxml2():
+    print('\n*** Building libxml2 ***\n')
+    os.chdir(os.path.join(BUILD_DIR, libxml2))
+    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_fontconfig():
+    print('\n*** Building fontconfig ***\n')
+    os.chdir(os.path.join(BUILD_DIR, fontconfig))
+    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_freetype():
+    print('\n*** Building freetype ***\n')
+    os.chdir(os.path.join(BUILD_DIR, freetype))
+    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
+
 def b_faac():
     print('\n*** Building faac ***\n')
     os.chdir(os.path.join(BUILD_DIR, faac))
     os.system('./configure --prefix=%s --enable-static --disable-shared --without-mp4v2' % TARGET_DIR)
     os.system('make -j %s && make install' % cpuCount)
-
-def b_libaacplus():
-    print('\n*** Building libaacplus ***\n')
-    os.chdir(os.path.join(BUILD_DIR, libaacplus))
-    # need to generate 'configure'
-    os.system('./autogen.sh')
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
-    # don't multithread, I don't think it works with this library
-    os.system('make && make install')
 
 def b_vo_aacenc():
     print('\n*** Building vo-aacenc ***\n')
@@ -279,7 +298,8 @@ def b_lame():
 def b_x264():
     print('\n*** Building x264 ***\n')
     os.chdir(os.path.join(BUILD_DIR, x264))
-    os.system('./configure --prefix=%s --enable-static --disable-shared --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
+    #os.system('./configure --prefix=%s --enable-static --disable-shared --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
+    os.system('./configure --prefix=%s --enable-static --disable-shared --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_xvid():
@@ -322,7 +342,9 @@ def b_ffmpeg():
     confcmd += ' --enable-libutvideo'
     confcmd += ' --enable-libvo-aacenc'
     confcmd += ' --enable-libspeex'
-    #confcmd += ' --enable-libaacplus'
+    #confcmd += ' --enable-libfreetype'
+    #confcmd += ' --enable-fontconfig'
+    confcmd += ' --enable-libx264'
     confcmd += ' --disable-devices'
 
     os.system('make distclean')
@@ -352,6 +374,7 @@ def b_ffmbc():
     confcmd += ' --enable-libtheora'
     confcmd += ' --enable-libvpx'
     confcmd += ' --enable-libspeex'
+    confcmd += ' --enable-libx264'
     confcmd += ' --disable-devices'
 
     os.system('make distclean')
@@ -382,8 +405,11 @@ def go_main():
     b_libvorbis()
     b_libtheora()
     b_libvpx()
+    #b_expat()
+    #b_libxml2()
+    #b_fontconfig()
+    #b_freetype()
     b_faac()
-    #b_libaacplus()
     b_vo_aacenc()
     b_speex()
     b_lame()
@@ -394,7 +420,6 @@ def go_main():
 def go_ffmpeg():
     b_ffmpeg()
     #b_ffmbc()
-    #b_libav()
 
 def run():
     try:
@@ -410,9 +435,9 @@ def run():
         print('\nBye\n')
         sys.exit(0)
 
-#cleanALL()
-#setupDIR()
-#f_getfiles()
-#f_extractfiles()
 run()
+#b_ffmpeg()
+#b_ffmbc()
+
+#b_fontconfig()
 
