@@ -28,6 +28,9 @@ if data.count('which') > 0:
     print('unable to find git')
     sys.exit(0)
 
+# print env
+os.system('export')
+
 # native
 cflagsopt = '-march=native'
 # dcs24 tape2
