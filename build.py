@@ -38,6 +38,10 @@ cflagsopt = '-march=core2 -msse4.1'
 # ts
 #cflagsopt = '-march=corei7'
 
+appendopt = ''
+if sys.platform.startswith('linux'):
+    appendopt i+= ' --enable-static --disable-shared'
+
 # define files
 yasm = 'yasm-1.2.0'
 zlib = 'zlib-1.2.7'
@@ -232,25 +236,25 @@ def b_bzip2():
 def b_libpng():
     print('\n*** Building libpng ***\n')
     os.chdir(os.path.join(BUILD_DIR, libpng))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_openjpeg():
     print('\n*** Building openjpeg ***\n')
     os.chdir(os.path.join(BUILD_DIR, openjpeg))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_libogg():
     print('\n*** Building libogg ***\n')
     os.chdir(os.path.join(BUILD_DIR, libogg))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt)
     os.system('make -j %s && make install' % cpuCount)
 
 def b_libvorbis():
     print('\n*** Building libvorbis ***\n')
     os.chdir(os.path.join(BUILD_DIR, libvorbis))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt)
     os.system('make -j %s && make install' % cpuCount)
 
 def b_libtheora():
@@ -292,25 +296,25 @@ def b_freetype():
 def b_faac():
     print('\n*** Building faac ***\n')
     os.chdir(os.path.join(BUILD_DIR, faac))
-    os.system('./configure --prefix=%s --enable-static --disable-shared --without-mp4v2' % TARGET_DIR)
+    os.system('./configure --prefix=%s --without-mp4v2 %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_vo_aacenc():
     print('\n*** Building vo-aacenc ***\n')
     os.chdir(os.path.join(BUILD_DIR, vo_aacenc))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_speex():
     print('\n*** Building speex ***\n')
     os.chdir(os.path.join(BUILD_DIR, speex))
-    os.system('./configure --prefix=%s --enable-static --disable-shared --enable-sse' % TARGET_DIR)
+    os.system('./configure --prefix=%s %s --enable-sse' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_lame():
     print('\n*** Building lame ***\n')
     os.chdir(os.path.join(BUILD_DIR, lame))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_x264():
@@ -319,7 +323,7 @@ def b_x264():
     #os.chdir(os.path.join(BUILD_DIR, x264))  # for tar.xz
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
     #os.system('./configure --prefix=%s --enable-static --disable-shared --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
-    os.system('./configure --prefix=%s --enable-static --disable-shared --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
+    os.system('./configure --prefix=%s --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_xvid():
