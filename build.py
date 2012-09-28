@@ -404,8 +404,8 @@ def out_pack():
     for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264']:
         os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
     os.chdir(ENV_ROOT)
-    os.system('tar -cvf ./output.tar ./output')
-    os.system('xz -v ./output.tar')
+    os.system('tar -cvf ./{0}.tar ./{0}'.format(BUILD_NUMBER))
+    os.system('xz -ve9 ./{0}.tar'.format(BUILD_NUMBER))
 
 def u_striplibs():
     os.system('strip %s/*' % os.path.join(TARGET_DIR, 'lib'))
