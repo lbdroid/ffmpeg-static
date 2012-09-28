@@ -84,7 +84,10 @@ OUT_DIR = os.path.join(ENV_ROOT, 'BUILD_{0}'.format(BUILD_NUMBER))
 
 # setup ENV
 envpath = os.getenv('PATH')
-os.putenv('PATH', '%s:%s' % (os.path.join(TARGET_DIR, 'bin'), envpath))
+addpath = os.path.join(TARGET_DIR, 'bin')
+if sys.platform.startswith('darwin'):
+    addpath += ':/opt/local/bin'
+os.putenv('PATH', '%s:%s' % (addpath, envpath))
 os.putenv('PKG_CONFIG_PATH', os.path.join(TARGET_DIR, 'lib', 'pkgconfig'))
 os.putenv('CFLAGS', cflagsopt)
 
