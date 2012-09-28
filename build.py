@@ -343,8 +343,9 @@ def b_ffmpeg():
     confcmd += ' --disable-debug'
     confcmd += ' --enable-static'
     confcmd += ' --disable-shared'
-    confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
-    confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
+    if sys.platform.startswith('linux'):
+        confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
+        confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
     confcmd += ' --enable-gpl'
     confcmd += ' --enable-version3'
     confcmd += ' --enable-nonfree'
@@ -379,8 +380,9 @@ def b_ffmbc():
     confcmd += ' --disable-debug'
     confcmd += ' --enable-static'
     confcmd += ' --disable-shared'
-    confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
-    confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
+    if sys.platform.startswith('linux'):
+        confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
+        confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
     confcmd += ' --enable-gpl'
     confcmd += ' --enable-nonfree'
     confcmd += ' --disable-doc'
