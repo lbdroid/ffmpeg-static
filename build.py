@@ -69,6 +69,7 @@ TARGET_DIR = os.path.join(ENV_ROOT, 'target')
 BUILD_DIR = os.path.join(ENV_ROOT, 'build')
 BUILD_GIT_DIR = os.path.join(ENV_ROOT, 'sourcegit')
 TAR_DIR = os.path.join(ENV_ROOT, 'sourcetar')
+OUT_DIR = os.path.join(ENV_ROOT, 'output')
 
 # setup ENV
 envpath = os.getenv('PATH')
@@ -78,7 +79,7 @@ os.putenv('CFLAGS', cflagsopt)
 
 
 def setupDIR():
-    for item in [ENV_ROOT, TARGET_DIR, BUILD_DIR, BUILD_GIT_DIR, TAR_DIR]:
+    for item in [ENV_ROOT, TARGET_DIR, BUILD_DIR, BUILD_GIT_DIR, TAR_DIR, OUT_DIR]:
         os.system('mkdir -p %s' % item)
 def cleanTARGET_DIR():
     os.system('rm -rf %s' % TARGET_DIR)
@@ -88,10 +89,13 @@ def cleanBUILDGIT_DIR():
     os.system('rm -rf %s' % BUILD_GIT_DIR)
 def cleanTAR_DIR():
     os.system('rm -rf %s' % TAR_DIR)
+def cleanOUT_DIR():
+    os.system('rm -rf %s' % OUT_DIR)
 def cleanALL():
     cleanTARGET_DIR()
     cleanBUILD_DIR()
     cleanTAR_DIR()
+    cleanOUT_DIR()
 
 def prewarn():
     print('\nneeded packages:\ngcc glibc-static git xz\n\n')
@@ -389,6 +393,14 @@ def b_ffmbc():
     os.system('cp -f ffmbc %s' % os.path.join(TARGET_DIR, 'bin', 'ffmbc'))
     os.system('cp -f ffprobe %s' % os.path.join(TARGET_DIR, 'bin', 'ffmbcprobe'))
 
+def out_pack():
+    os.chdir(OUT_DIR)
+    for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264']:
+        os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
+    os.chdir(ENV_ROOT)
+    os.system('tar -cvf ./output.tar ./output')
+    os.system('xz -v ./output.tar')
+
 def u_striplibs():
     os.system('strip %s/*' % os.path.join(TARGET_DIR, 'lib'))
 
@@ -433,6 +445,7 @@ def run():
         go_get()
         go_main()
         go_ffmpeg()
+        out_pack()
     except KeyboardInterrupt:
         print('\nBye\n')
         sys.exit(0)
