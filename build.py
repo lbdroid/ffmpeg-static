@@ -69,7 +69,13 @@ TARGET_DIR = os.path.join(ENV_ROOT, 'target')
 BUILD_DIR = os.path.join(ENV_ROOT, 'build')
 BUILD_GIT_DIR = os.path.join(ENV_ROOT, 'sourcegit')
 TAR_DIR = os.path.join(ENV_ROOT, 'sourcetar')
-OUT_DIR = os.path.join(ENV_ROOT, 'output')
+
+#
+try:
+    BUILD_NUMBER = os.getenv['BUILD_NUMBER']
+except:
+    BUILD_NUMBER = '0'
+OUT_DIR = os.path.join(ENV_ROOT, 'BUILD_{0}'.format(BUILD_NUMBER))
 
 # setup ENV
 envpath = os.getenv('PATH')
