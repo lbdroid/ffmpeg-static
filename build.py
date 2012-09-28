@@ -75,7 +75,9 @@ try:
     BUILD_NUMBER = os.getenv['BUILD_NUMBER']
 except:
     BUILD_NUMBER = '0'
+print('BUILD_NUMBER: %s' % BUILD_NUMBER)
 OUT_DIR = os.path.join(ENV_ROOT, 'BUILD_{0}'.format(BUILD_NUMBER))
+
 
 # setup ENV
 envpath = os.getenv('PATH')
@@ -404,8 +406,9 @@ def out_pack():
     for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264']:
         os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
     os.chdir(ENV_ROOT)
-    os.system('tar -cvf ./{0}.tar ./{0}'.format(BUILD_NUMBER))
-    os.system('xz -ve9 ./{0}.tar'.format(BUILD_NUMBER))
+    os.system('tar -cvf ./BUILD_{0}.tar ./{0}'.format(BUILD_NUMBER))
+
+    os.system('xz -ve9 ./BUILD_{0}.tar'.format(BUILD_NUMBER))
 
 def u_striplibs():
     os.system('strip %s/*' % os.path.join(TARGET_DIR, 'lib'))
