@@ -40,7 +40,7 @@ cflagsopt = '-march=core2 -msse4.1'
 
 appendopt = ''
 if sys.platform.startswith('linux'):
-    appendopt i+= ' --enable-static --disable-shared'
+    appendopt += ' --enable-static --disable-shared'
 
 # define files
 yasm = 'yasm-1.2.0'
@@ -248,13 +248,13 @@ def b_openjpeg():
 def b_libogg():
     print('\n*** Building libogg ***\n')
     os.chdir(os.path.join(BUILD_DIR, libogg))
-    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_libvorbis():
     print('\n*** Building libvorbis ***\n')
     os.chdir(os.path.join(BUILD_DIR, libvorbis))
-    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt)
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_libtheora():
