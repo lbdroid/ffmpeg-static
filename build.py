@@ -83,7 +83,8 @@ try:
 except:
     BUILD_NUMBER = '0'
 print('BUILD_NUMBER: %s' % BUILD_NUMBER)
-OUT_DIR = os.path.join(ENV_ROOT, 'BUILD_{0}'.format(BUILD_NUMBER))
+OUT_FOLDER = 'output'
+OUT_DIR = os.path.join(ENV_ROOT, OUT_FOLDER)
 
 
 # setup ENV
@@ -109,11 +110,15 @@ def cleanTAR_DIR():
     os.system('rm -rf %s' % TAR_DIR)
 def cleanOUT_DIR():
     os.system('rm -rf %s' % OUT_DIR)
+def cleanOUT_DIR_FILES():
+    os.system('rm -f %s.tar' % OUT_DIR)
+    os.system('rm -f %s.tar.xz' % OUT_DIR)
 def cleanALL():
     cleanTARGET_DIR()
     cleanBUILD_DIR()
     cleanTAR_DIR()
     cleanOUT_DIR()
+    cleanOUT_DIR_FILES()
 
 def prewarn():
     print('\nneeded packages:\ngcc glibc-static git xz\n\n')
@@ -422,8 +427,8 @@ def out_pack():
     for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264']:
         os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
     os.chdir(ENV_ROOT)
-    os.system('tar -cvf ./BUILD_{0}.tar ./BUILD_{0}'.format(BUILD_NUMBER))
-    os.system('xz -ve9 ./BUILD_{0}.tar'.format(BUILD_NUMBER))
+    os.system('tar -cvf ./{0}.tar ./{0}'.format(OUT_FOLDER))
+    os.system('xz -ve9 ./{0}.tar'.format(OUT_FOLDER))
 
 def u_striplibs():
     os.system('strip %s/*' % os.path.join(TARGET_DIR, 'lib'))
