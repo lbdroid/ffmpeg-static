@@ -323,7 +323,7 @@ def b_x264():
     #os.chdir(os.path.join(BUILD_DIR, x264))  # for tar.xz
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
     #os.system('./configure --prefix=%s --enable-static --disable-shared --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
-    if appendopt = '':
+    if appendopt == '':
         x264appendopt = '--shared'
     else:
         x264appendopt = appendopt
