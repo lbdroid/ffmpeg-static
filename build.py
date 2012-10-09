@@ -15,6 +15,7 @@ if sys.version_info < (2, 6):
 # get cpu count
 import multiprocessing as mp
 cpuCount = mp.cpu_count()
+del mp
 
 # check for xz and git
 p = subprocess.Popen('which xz', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -360,8 +361,12 @@ def b_utvideo():
 def b_gpac():
     print('\n*** Building gpac ***\n')
     os.chdir(os.path.join(BUILD_DIR, 'gpac'))
-    os.system('./configure --prefix=%s --disable-ssl --disable-ipv6 --disable-wx --disable-platinum --disable-alsa --disable-oss-audio --disable-jack --disable-pulseaudio --disable-x11-shm --disable-x11-xv --use-ft=no --use-faad=no --use-jpeg=no --use-png=no --use-mad=no --use-xvid=no --use-ffmpeg=no --use-ogg=no --use-vorbis=no --use-theora=no --use-openjpeg=no --use-a52=no --enable-static-bin' % TARGET_DIR)
-    os.system('make lib -j %s && make install-lib' % cpuCount)
+    confcmd = './configure --prefix=%s --disable-ssl --disable-ipv6 --disable-wx --disable-platinum --disable-alsa --disable-oss-audio --disable-jack --disable-pulseaudio --disable-x11-shm --disable-x11-xv --use-ft=no --use-faad=no --use-jpeg=no --use-png=no --use-mad=no --use-xvid=no --use-ffmpeg=no --use-ogg=no --use-vorbis=no --use-theora=no --use-openjpeg=no --use-a52=no --enable-static-bin' % TARGET_DIR
+    confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
+    confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
+    os.system(confcmd)
+    os.system('make lib -j %s' % cpuCount)
+    os.system('make install-lib')
 
 def b_ffmpeg():
     print('\n*** Building ffmpeg ***\n')
