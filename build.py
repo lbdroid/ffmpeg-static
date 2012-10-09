@@ -33,10 +33,13 @@ os.system('export')
 
 # native
 cflagsopt = '-march=native'
+#cflagsopt = '-march=native -fPIC'
 # dcs24 tape2
 cflagsopt = '-march=core2 -msse4.1'
+#cflagsopt = '-march=core2 -msse4.1 -fPIC'
 # ts
 #cflagsopt = '-march=corei7'
+#clfagsopt = '-march=corei7 -fPIC'
 
 appendopt = ''
 if sys.platform.startswith('linux'):
@@ -66,6 +69,7 @@ x264BitDepth = '8'
 x264Chroma = 'all'
 xvid = 'xvid-1.3.2'
 utvideo = 'utvideo-11.1.1'
+gpac = 'gpac-0.5.0'
 ffmpeggit = 'git://source.ffmpeg.org/ffmpeg.git'
 ffmbc = 'FFmbc-0.7-rc7'
 
@@ -133,7 +137,7 @@ fileList = []
 for item in [
         yasm, zlib, bzip2, libpng, openjpeg, libogg, libvorbis, libtheora,
         libvpx, faac, vo_aacenc, speex, lame, xvid,
-        utvideo, ffmbc
+        utvideo, gpac, ffmbc
         ]:
     fileList.append('%s.tar.xz' % item)
 
@@ -229,13 +233,13 @@ def b_yasm():
 def b_zlib():
     print('\n*** Building zlib ***\n')
     os.chdir(os.path.join(BUILD_DIR, zlib))
-    os.system('./configure --prefix=%s --static' % TARGET_DIR)
-    os.system('make -j %s && make install' % cpuCount)
+    os.system('export CFLAGS="$CFLAGS -fPIC";./configure --prefix=%s --static' % TARGET_DIR)
+    os.system('export CFLAGS="$CFLAGS -fPIC";make -j %s && make install' % cpuCount)
 
 def b_bzip2():
     print('\n*** Building bzip2 ***\n')
     os.chdir(os.path.join(BUILD_DIR, bzip2))
-    os.system('make')
+    os.system('make CFLAGS="-Wall -Winline -O2 -g -D_FILE_OFFSET_BITS=64 -fPIC"')
     os.system('make install PREFIX=%s' % TARGET_DIR)
 
 def b_libpng():
@@ -324,15 +328,19 @@ def b_lame():
 
 def b_x264():
     print('\n*** Building x264 ***\n')
-    # TODO fix x264 tar.xz path to be 'x264'
-    #os.chdir(os.path.join(BUILD_DIR, x264))  # for tar.xz
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
-    #os.system('./configure --prefix=%s --enable-static --disable-shared --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
     if appendopt == '':
         x264appendopt = '--shared'
     else:
         x264appendopt = appendopt
-    os.system('./configure --prefix=%s --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s %s' % (TARGET_DIR, x264BitDepth, x264Chroma, x264appendopt))
+    os.system('./configure --prefix=%s --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s %s' % (TARGET_DIR, x264BitDepth, x264Chroma, x264appendopt))
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_x264full():
+    print('\n*** Build x264 Full ***\n')
+    os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
+    os.system('make clean')
+    os.system('./configure --prefix=%s --enable-static --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_xvid():
@@ -346,7 +354,14 @@ def b_utvideo():
     print('\n*** Building utvideo ***\n')
     os.chdir(os.path.join(BUILD_DIR, utvideo))
     #os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    #os.system('make CXXFLAGS="-g -O2 -Wall -Wextra -Wno-multichar -Wno-unused-parameter -Wno-sign-compare -fPIC" -j %s && make prefix=%s install' % (cpuCount, TARGET_DIR))
     os.system('make -j %s && make prefix=%s install' % (cpuCount, TARGET_DIR))
+
+def b_gpac():
+    print('\n*** Building gpac ***\n')
+    os.chdir(os.path.join(BUILD_DIR, 'gpac'))
+    os.system('./configure --prefix=%s --disable-ssl --disable-ipv6 --disable-wx --disable-platinum --disable-alsa --disable-oss-audio --disable-jack --disable-pulseaudio --disable-x11-shm --disable-x11-xv --use-ft=no --use-faad=no --use-jpeg=no --use-png=no --use-mad=no --use-xvid=no --use-ffmpeg=no --use-ogg=no --use-vorbis=no --use-theora=no --use-openjpeg=no --use-a52=no --enable-static-bin' % TARGET_DIR)
+    os.system('make lib -j %s && make install-lib' % cpuCount)
 
 def b_ffmpeg():
     print('\n*** Building ffmpeg ***\n')
@@ -464,6 +479,12 @@ def go_ffmpeg():
     b_ffmpeg()
     b_ffmbc()
 
+
+def go_x264full():
+    b_ffmpeg()
+    b_gpac()
+    b_x264full()
+
 def run():
     try:
         prewarn()
@@ -474,14 +495,17 @@ def run():
         go_get()
         go_main()
         go_ffmpeg()
+        b_gpac()
+        b_x264full()
         out_pack()
     except KeyboardInterrupt:
         print('\nBye\n')
         sys.exit(0)
 
-run()
-#b_ffmpeg()
-#b_ffmbc()
+if __name__ == '__main__':
+    run()
+    #b_gpac()
+    #b_ffmpeg()
+    #b_ffmbc()
 
-#b_fontconfig()
 
