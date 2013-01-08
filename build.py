@@ -50,15 +50,17 @@ if sys.platform.startswith('linux'):
 yasm = 'yasm-1.2.0'
 zlib = 'zlib-1.2.7'
 bzip2 = 'bzip2-1.0.6'
-libpng = 'libpng-1.5.12'
-openjpeg = 'openjpeg-1.5.0'
+libpng = 'libpng-1.5.13'
+openjpeg = 'openjpeg-1.5.0'  # 1.5.1 works with ffmpeg, none work with 2.0.0
+libtiff = 'tiff-4.0.3'
 libogg = 'libogg-1.3.0'
-libvorbis = 'libvorbis-1.3.2'
+libvorbis = 'libvorbis-1.3.3'
 libtheora = 'libtheora-1.1.1'
 libvpx = 'libvpx-1.1.0'
-libxml2 = 'libxml2-2.8.0'
+libvpxgit = 'http://git.chromium.org/webm/libvpx.git'
+libxml2 = 'libxml2-2.9.0'
 expat = 'expat-2.1.0'
-fontconfig = 'fontconfig-2.10.1'
+fontconfig = 'fontconfig-2.10.2'
 freetype = 'freetype-2.4.10'
 faac = 'faac-1.28'
 vo_aacenc = 'vo-aacenc-0.1.2'
@@ -136,8 +138,8 @@ def prewarn():
 
 fileList = []
 for item in [
-        yasm, zlib, bzip2, libpng, openjpeg, libogg, libvorbis, libtheora,
-        libvpx, faac, vo_aacenc, speex, lame, xvid,
+        yasm, zlib, bzip2, libtiff, libpng, openjpeg, libogg, libvorbis, libtheora,
+        faac, vo_aacenc, speex, lame, xvid,
         utvideo, gpac, ffmbc
         ]:
     fileList.append('%s.tar.xz' % item)
@@ -172,6 +174,7 @@ def f_decompressfiles():
         else:
             print('%s already uncompressed' % fileName)
     f_sync()
+    git_libvpx()
     git_ffmpeg()
     git_x264()
     f_sync()
@@ -179,6 +182,21 @@ def f_decompressfiles():
 def f_sync():
     print('\n*** Syncinig Hard Drive ***\n')
     os.system('sync')
+
+def git_libvpx():
+    print('\n*** Cloning libvpx ***\n')
+    if os.path.exists(os.path.join(BUILD_GIT_DIR, 'libvpx')):
+        print('git pull')
+        os.chdir(os.path.join(BUILD_GIT_DIR, 'libvpx'))
+        os.system('git pull')
+    else:
+        os.chdir(BUILD_GIT_DIR)
+        os.system('git clone %s' % libvpxgit)
+
+def git_libvpx_deploy():
+    print('\n*** Deploy libvpx git to BUILD_DIR ***\n')
+    os.chdir(BUILD_GIT_DIR)
+    os.system('cp -rf ./libvpx %s' % BUILD_DIR)
 
 def git_ffmpeg():
     print('\n*** Cloning ffmpeg ***\n')
@@ -191,7 +209,7 @@ def git_ffmpeg():
         os.system('git clone %s' % ffmpeggit)
 
 def git_ffmpeg_deploy():
-    print('\n*** Deploy ffmpeg git to BUILD_DIR***\n')
+    print('\n*** Deploy ffmpeg git to BUILD_DIR ***\n')
     if os.path.exists(os.path.join(BUILD_GIT_DIR, 'ffmpeg')):
         os.chdir(BUILD_GIT_DIR)
         os.system('cp -rf ./ffmpeg %s' % BUILD_DIR)
@@ -221,6 +239,7 @@ def f_extractfiles():
         tar = tarfile.open(os.path.join(TAR_DIR, fileName.rstrip('.xz')))
         tar.extractall()
         tar.close()
+    git_libvpx_deploy()
     git_ffmpeg_deploy()
     git_x264_deploy()
     f_sync()
@@ -252,6 +271,13 @@ def b_libpng():
 def b_openjpeg():
     print('\n*** Building openjpeg ***\n')
     os.chdir(os.path.join(BUILD_DIR, openjpeg))
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))  # openjpeg 1.5
+    #os.system('cmake . -DCMAKE_INSTALL_PREFIX=%s -DBUILD_SHARED_LIBS:bool=off' % TARGET_DIR)  # openjpeg 2.0.0
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_libtiff():
+    print('\n*** Building libtiff ***\n')
+    os.chdir(os.path.join(BUILD_DIR, libtiff))
     os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
@@ -275,7 +301,8 @@ def b_libtheora():
 
 def b_libvpx():
     print('\n*** Building libvpx ***\n')
-    os.chdir(os.path.join(BUILD_DIR, libvpx))
+    #os.chdir(os.path.join(BUILD_DIR, libvpx))
+    os.chdir(os.path.join(BUILD_DIR, 'libvpx'))
     os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
     os.system('make -j %s && make install' % cpuCount)
 
@@ -462,6 +489,7 @@ def go_main():
     b_yasm()
     b_zlib()
     b_bzip2()
+    b_libtiff()
     b_libpng()
     b_openjpeg()
     b_libogg()
@@ -493,6 +521,7 @@ def go_x264full():
 def run():
     try:
         prewarn()
+        cleanOUT_DIR_FILES()
         cleanTARGET_DIR()
         cleanBUILD_DIR()
         #cleanTAR_DIR()
