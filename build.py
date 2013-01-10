@@ -50,6 +50,7 @@ if sys.platform.startswith('linux'):
 yasm = 'yasm-1.2.0'
 zlib = 'zlib-1.2.7'
 bzip2 = 'bzip2-1.0.6'
+ncurses = 'ncurses-5.9'
 libpng = 'libpng-1.5.13'
 openjpeg = 'openjpeg-1.5.0'  # 1.5.1 works with ffmpeg, none work with 2.0.0
 libtiff = 'tiff-4.0.3'
@@ -138,7 +139,7 @@ def prewarn():
 
 fileList = []
 for item in [
-        yasm, zlib, bzip2, libtiff, libpng, openjpeg, libogg, libvorbis, libtheora,
+        yasm, zlib, bzip2, ncurses, libtiff, libpng, openjpeg, libogg, libvorbis, libtheora,
         faac, vo_aacenc, speex, lame, xvid,
         utvideo, gpac, ffmbc
         ]:
@@ -261,6 +262,12 @@ def b_bzip2():
     os.chdir(os.path.join(BUILD_DIR, bzip2))
     os.system('make CFLAGS="-Wall -Winline -O2 -g -D_FILE_OFFSET_BITS=64 -fPIC"')
     os.system('make install PREFIX=%s' % TARGET_DIR)
+
+def b_ncurses():
+    print('\n*** Building ncurses ***\n')
+    os.chdir(os.path.join(BUILD_DIR, ncurses))
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
+    os.system('make -j %s && make install' % cpuCount)
 
 def b_libpng():
     print('\n*** Building libpng ***\n')
@@ -489,6 +496,7 @@ def go_main():
     b_yasm()
     b_zlib()
     b_bzip2()
+    b_ncurses()
     b_libtiff()
     b_libpng()
     b_openjpeg()
