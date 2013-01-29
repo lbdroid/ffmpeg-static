@@ -51,6 +51,7 @@ yasm = 'yasm-1.2.0'
 zlib = 'zlib-1.2.7'
 bzip2 = 'bzip2-1.0.6'
 ncurses = 'ncurses-5.9'
+jasper = 'jasper-1.900.1'
 libpng = 'libpng-1.5.13'
 openjpeg = 'openjpeg-1.5.0'  # 1.5.1 works with ffmpeg, none work with 2.0.0
 libtiff = 'tiff-4.0.3'
@@ -139,7 +140,7 @@ def prewarn():
 
 fileList = []
 for item in [
-        yasm, zlib, bzip2, ncurses, libtiff, libpng, openjpeg, libogg, libvorbis, libtheora,
+        yasm, zlib, bzip2, ncurses, jasper, libtiff, libpng, openjpeg, libogg, libvorbis, libtheora,
         faac, vo_aacenc, speex, lame, xvid,
         utvideo, gpac, ffmbc
         ]:
@@ -266,7 +267,13 @@ def b_bzip2():
 def b_ncurses():
     print('\n*** Building ncurses ***\n')
     os.chdir(os.path.join(BUILD_DIR, ncurses))
-    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
+    os.system('./configure --with-termlib --with-ticlib --prefix=%s %s' % (TARGET_DIR, appendopt))
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_jasper():
+    print('\n*** Building jasper (jp2) ***\n')
+    os.chdir(os.path.join(BUILD_DIR, jasper))
+    os.system('./configure --enable-shared=no --enable-static=yes --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_libpng():
@@ -285,8 +292,8 @@ def b_openjpeg():
 def b_libtiff():
     print('\n*** Building libtiff ***\n')
     os.chdir(os.path.join(BUILD_DIR, libtiff))
-    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
-    os.system('make -j %s && make install' % cpuCount)
+    os.system('export CFLAGS="--static";export LDFLAGS="-static -static-libgcc";./configure --prefix=%s --enable-shared=no --enable-static=yes %s' % (TARGET_DIR, appendopt))
+    os.system('export CFLAGS="--static";export LDFLAGS="-static -static-libgcc";make -j %s && make install' % cpuCount)
 
 def b_libogg():
     print('\n*** Building libogg ***\n')
@@ -358,7 +365,7 @@ def b_speex():
 def b_lame():
     print('\n*** Building lame ***\n')
     os.chdir(os.path.join(BUILD_DIR, lame))
-    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
+    os.system('./configure --disable-frontend --enable-shared=no --enable-static=yes --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_x264():
@@ -530,6 +537,7 @@ def run():
     try:
         prewarn()
         cleanOUT_DIR_FILES()
+        cleanOUT_DIR()
         cleanTARGET_DIR()
         cleanBUILD_DIR()
         #cleanTAR_DIR()
