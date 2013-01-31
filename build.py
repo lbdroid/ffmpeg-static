@@ -523,7 +523,7 @@ def b_ffmbc():
 
 def out_pack():
     os.chdir(OUT_DIR)
-    for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264']:
+    for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264', 'tiffcp', 'tiffinfo']:
         os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
     os.chdir(ENV_ROOT)
     os.system('tar -cvf ./{0}.tar ./{0}'.format(OUT_FOLDER))
