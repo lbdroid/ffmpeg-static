@@ -17,12 +17,7 @@ import multiprocessing as mp
 cpuCount = mp.cpu_count()
 del mp
 
-# check for xz and git
-p = subprocess.Popen('which xz', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-data = p.communicate()[0]
-if data.count('which') > 0:
-    print('unable to find xz')
-    sys.exit(0)
+# check for git
 p = subprocess.Popen('which git', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 data = p.communicate()[0]
 if data.count('which') > 0:
@@ -47,6 +42,7 @@ if sys.platform.startswith('linux'):
     appendopt += ' --enable-static --disable-shared'
 
 # define files
+xz = 'xz-5.0.4'
 yasm = 'yasm-1.2.0'
 zlib = 'zlib-1.2.7'
 bzip2 = 'bzip2-1.0.6'
@@ -172,7 +168,7 @@ def f_decompressfiles():
     os.chdir(BUILD_DIR)
     for fileName in fileList:
         if os.path.exists(os.path.join(TAR_DIR, fileName.rstrip('.xz'))) is False:
-            os.system('xz -dv %s' % os.path.join(TAR_DIR, fileName))
+            os.system('%s -dv %s' % (os.path.join(TARGET_DIR, 'bin', 'xz'), os.path.join(TAR_DIR, fileName)))
         else:
             print('%s already uncompressed' % fileName)
     f_sync()
@@ -184,6 +180,48 @@ def f_decompressfiles():
 def f_sync():
     print('\n*** Syncinig Hard Drive ***\n')
     os.system('sync')
+
+def build_xz():
+    print('\n*** downloading xz/liblzma ***\n')
+    os.chdir(TAR_DIR)
+    server = 'http://www.ghosttoast.com/pub/ffmpeg/libs'
+    fileName = '%s.tar.gz' % xz
+    if os.path.exists(os.path.join(TAR_DIR, fileName.rstrip('.gz'))) is False:
+        try:
+            print('%s/%s' % (server, fileName))
+            response = urllib2.urlopen('%s/%s' % (server, fileName))
+            data = response.read()
+        except urllib2.HTTPError as e:
+            print('error downloading %s/%s %s' % (server, fileName, e))
+            sys.exit(1)
+        f = open(fileName, 'wb')
+        f.write(data)
+        f.close()
+    else:
+        print('%s already downloaded' % fileName.rstrip('.gz'))
+    f_sync()
+
+    print('\n*** Decompressing xz/liblzma ***\n')
+    os.chdir(BUILD_DIR)
+    if os.path.exists(os.path.join(TAR_DIR, fileName.rstrip('.gz'))) is False:
+        os.system('gunzip -v %s' % os.path.join(TAR_DIR, fileName))
+    else:
+        print('%s already uncompressed' % fileName)
+    f_sync()
+
+    print('\n*** Extracting xz/liblzma ***\n')
+    os.chdir(BUILD_DIR)
+    print(fileName.rstrip('.gz'))
+    tar = tarfile.open(os.path.join(TAR_DIR, fileName.rstrip('.gz')))
+    tar.extractall()
+    tar.close()
+    f_sync()
+
+    print('\n*** Building xz/liblzma ***\n')
+    os.chdir(os.path.join(BUILD_DIR, xz))
+    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
+    os.system('make -j %s && make install' % cpuCount)
+    f_sync()
 
 def git_libvpx():
     print('\n*** Cloning libvpx ***\n')
@@ -292,8 +330,8 @@ def b_openjpeg():
 def b_libtiff():
     print('\n*** Building libtiff ***\n')
     os.chdir(os.path.join(BUILD_DIR, libtiff))
-    os.system('export CFLAGS="--static";export LDFLAGS="-static -static-libgcc";./configure --prefix=%s --enable-shared=no --enable-static=yes %s' % (TARGET_DIR, appendopt))
-    os.system('export CFLAGS="--static";export LDFLAGS="-static -static-libgcc";make -j %s && make install' % cpuCount)
+    os.system('export CFLAGS="--static -I%s";export LDFLAGS="-L%s -static -static-libgcc";./configure --prefix=%s --enable-shared=no --enable-static=yes %s' % (os.path.join(TARGET_DIR, 'include'), os.path.join(TARGET_DIR, 'lib'), TARGET_DIR, appendopt))
+    os.system('export CFLAGS="--static -I%s";export LDFLAGS="-L%s -static -static-libgcc";make -j %s && make install' % (os.path.join(TARGET_DIR, 'include'), os.path.join(TARGET_DIR, 'lib'), cpuCount))
 
 def b_libogg():
     print('\n*** Building libogg ***\n')
@@ -542,6 +580,7 @@ def run():
         cleanBUILD_DIR()
         #cleanTAR_DIR()
         setupDIR()
+        build_xz()
         go_get()
         go_main()
         go_ffmpeg()
