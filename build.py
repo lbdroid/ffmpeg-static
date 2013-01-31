@@ -382,7 +382,7 @@ def b_x264full():
     print('\n*** Build x264 Full ***\n')
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
     os.system('make clean')
-    os.system('./configure --prefix=%s --enable-static --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
+    os.system('./configure --prefix=%s --enable-static --bit-depth=%s --chroma-format=%s --extra-cflags=\'--static -I%s\' --extra-ldflags=\'-L%s -static -static-libgcc\'' % (TARGET_DIR, x264BitDepth, x264Chroma, os.path.join(TARGET_DIR, 'include'), os.path.join(TARGET_DIR, 'lib')))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_xvid():
@@ -554,6 +554,7 @@ def run():
 
 if __name__ == '__main__':
     run()
+    #b_x264full()
     #b_gpac()
     #b_ffmpeg()
     #b_ffmbc()
