@@ -484,8 +484,8 @@ def b_ffmpeg():
     confcmd += ' --enable-libx264'
     confcmd += ' --disable-devices'
     confcmd += ' --enable-lto'
-    confcmd += ' --enable-hardcoded-tables'
-    confcmd += ' --disable-safe-bitstream-reader'
+    #confcmd += ' --enable-hardcoded-tables'
+    #confcmd += ' --disable-safe-bitstream-reader'
 
     os.system('make distclean')
     os.system(confcmd)
