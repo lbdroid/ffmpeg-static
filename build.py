@@ -31,7 +31,7 @@ os.system('export')
 cflagsopt = '-march=native'
 #cflagsopt = '-march=native -fPIC'
 # dcs24 tape2
-cflagsopt = '-march=core2 -msse4.1'
+#cflagsopt = '-march=core2 -msse4.1'
 #cflagsopt = '-march=core2 -msse4.1 -fPIC'
 # ts
 #cflagsopt = '-march=corei7'
@@ -450,6 +450,10 @@ def b_gpac():
 def b_ffmpeg():
     print('\n*** Building ffmpeg ***\n')
     os.chdir(os.path.join(BUILD_DIR,'ffmpeg'))
+
+    # patch prores4444 FourCC codec
+    os.system('patch -p1 < %s' % os.path.join(ENV_ROOT, 'patchprores444.diff'))
+
     confcmd = './configure --prefix=%s' % TARGET_DIR
     confcmd += ' --extra-version=static'
     confcmd += ' --disable-debug'
@@ -479,10 +483,15 @@ def b_ffmpeg():
     #confcmd += ' --enable-fontconfig'
     confcmd += ' --enable-libx264'
     confcmd += ' --disable-devices'
+    confcmd += ' --enable-lto'
+    confcmd += ' --enable-hardcoded-tables'
+    confcmd += ' --disable-safe-bitstream-reader'
 
     os.system('make distclean')
     os.system(confcmd)
     os.system('make -j %s && make install' % cpuCount)
+    os.system('make tools/qt-faststart')
+    os.system('cp tools/qt-faststart %s' % os.path.join(TARGET_DIR, 'bin'))
 
 def b_ffmbc():
     print('\n*** Building ffmbc ***\n')
@@ -523,8 +532,9 @@ def b_ffmbc():
 
 def out_pack():
     os.chdir(OUT_DIR)
-    for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264', 'tiffcp', 'tiffinfo']:
+    for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264', 'tiffcp', 'tiffinfo', 'qt-faststart']:
         os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
+    os.system('strip *')
     os.chdir(ENV_ROOT)
     os.system('tar -cvf ./{0}.tar ./{0}'.format(OUT_FOLDER))
     os.system('xz -ve9 ./{0}.tar'.format(OUT_FOLDER))
