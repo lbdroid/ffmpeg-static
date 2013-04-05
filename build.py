@@ -72,7 +72,7 @@ xvid = 'xvid-1.3.2'
 utvideo = 'utvideo-11.1.1'
 gpac = 'gpac-0.5.0'
 ffmpeggit = 'git://source.ffmpeg.org/ffmpeg.git'
-ffmbc = 'FFmbc-0.7-rc7'
+ffmbc = 'FFmbc-0.7-rc8'
 
 #os.environ['ENV_ROOT'] = 'pwd'
 # source env.source
