@@ -44,22 +44,23 @@ if sys.platform.startswith('linux'):
 # define files
 xz = 'xz-5.0.4'
 yasm = 'yasm-1.2.0'
-zlib = 'zlib-1.2.7'
+zlib = 'zlib-1.2.8'
 bzip2 = 'bzip2-1.0.6'
 ncurses = 'ncurses-5.9'
 jasper = 'jasper-1.900.1'
 libpng = 'libpng-1.5.15'
+#libpng = 'libpng-1.6.2'
 openjpeg = 'openjpeg-1.5.0'  # 1.5.1 works with ffmpeg, none work with 2.0.0
 libtiff = 'tiff-4.0.3'
-libogg = 'libogg-1.3.0'
+libogg = 'libogg-1.3.1'
 libvorbis = 'libvorbis-1.3.3'
 libtheora = 'libtheora-1.1.1'
 libvpx = 'libvpx-1.1.0'
 libvpxgit = 'http://git.chromium.org/webm/libvpx.git'
-libxml2 = 'libxml2-2.9.0'
-expat = 'expat-2.1.0'
-fontconfig = 'fontconfig-2.10.2'
-freetype = 'freetype-2.4.10'
+#libxml2 = 'libxml2-2.9.0'
+#expat = 'expat-2.1.0'
+#fontconfig = 'fontconfig-2.10.2'
+#freetype = 'freetype-2.4.10'
 faac = 'faac-1.28'
 vo_aacenc = 'vo-aacenc-0.1.2'
 speex = 'speex-1.2rc1'
@@ -146,7 +147,7 @@ for item in [
 def f_getfiles():
     print('\n*** Downloading files ***\n')
     os.chdir(TAR_DIR)
-    server = 'http://www.ghosttoast.com/pub/ffmpeg/libs'
+    server = 'http://www.ghosttoast.com/pub/ffmpeg'
     for fileName in fileList:
         if os.path.exists(os.path.join(TAR_DIR, fileName.rstrip('.xz'))) is False:
             try:
@@ -184,7 +185,7 @@ def f_sync():
 def build_xz():
     print('\n*** downloading xz/liblzma ***\n')
     os.chdir(TAR_DIR)
-    server = 'http://www.ghosttoast.com/pub/ffmpeg/libs'
+    server = 'http://www.ghosttoast.com/pub/ffmpeg'
     fileName = '%s.tar.gz' % xz
     if os.path.exists(os.path.join(TAR_DIR, fileName.rstrip('.gz'))) is False:
         try:
@@ -323,7 +324,7 @@ def b_libpng():
 def b_openjpeg():
     print('\n*** Building openjpeg ***\n')
     os.chdir(os.path.join(BUILD_DIR, openjpeg))
-    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))  # openjpeg 1.5
+    os.system('./configure --disable-png --prefix=%s %s' % (TARGET_DIR, appendopt))  # openjpeg 1.5
     #os.system('cmake . -DCMAKE_INSTALL_PREFIX=%s -DBUILD_SHARED_LIBS:bool=off' % TARGET_DIR)  # openjpeg 2.0.0
     os.system('make -j %s && make install' % cpuCount)
 
@@ -413,14 +414,14 @@ def b_x264():
         x264appendopt = '--shared'
     else:
         x264appendopt = appendopt
-    os.system('./configure --prefix=%s --disable-cli --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s %s' % (TARGET_DIR, x264BitDepth, x264Chroma, x264appendopt))
+    os.system('./configure --prefix=%s --disable-cli --disable-opencl --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s %s' % (TARGET_DIR, x264BitDepth, x264Chroma, x264appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_x264full():
     print('\n*** Build x264 Full ***\n')
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
     os.system('make clean')
-    os.system('./configure --prefix=%s --enable-static --bit-depth=%s --chroma-format=%s --extra-cflags=\'--static -I%s\' --extra-ldflags=\'-L%s -static -static-libgcc\'' % (TARGET_DIR, x264BitDepth, x264Chroma, os.path.join(TARGET_DIR, 'include'), os.path.join(TARGET_DIR, 'lib')))
+    os.system('./configure --prefix=%s --disable-opencl --enable-static --bit-depth=%s --chroma-format=%s --extra-cflags=\'--static -I%s\' --extra-ldflags=\'-L%s -static -static-libgcc\'' % (TARGET_DIR, x264BitDepth, x264Chroma, os.path.join(TARGET_DIR, 'include'), os.path.join(TARGET_DIR, 'lib')))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_xvid():
@@ -452,7 +453,7 @@ def b_ffmpeg():
     os.chdir(os.path.join(BUILD_DIR,'ffmpeg'))
 
     # patch prores4444 FourCC codec
-    os.system('patch -p1 < %s' % os.path.join(ENV_ROOT, 'patchprores444.diff'))
+    #os.system('patch -p1 < %s' % os.path.join(ENV_ROOT, 'patchprores444.diff'))
 
     confcmd = './configure --prefix=%s' % TARGET_DIR
     confcmd += ' --extra-version=static'
