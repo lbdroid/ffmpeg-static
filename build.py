@@ -62,6 +62,9 @@ downloadList.append(bzip2)
 ncurses = 'ncurses-6.0'
 downloadList.append(ncurses)
 
+openssl = 'openssl-1.02g'
+downloadList.append(openssl)
+
 snappy = 'snappy-1.1.3'
 downloadList.append(snappy)
 
@@ -369,6 +372,13 @@ def b_ncurses():
     os.system('./configure --with-termlib --with-ticlib --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
+def b_openssl():
+    print('\n*** Building openssl ***\n')
+    os.chdir(os.path.join(BUILD_DIR, openssl))
+    os.system('./Configure no-shared --prefix=%s linux-x86_64' % (TARGET_DIR))
+    os.system('make depend')
+    os.system('make -j %s && make install' % cpuCount)
+
 def b_libpng():
     print('\n*** Building libpng ***\n')
     os.chdir(os.path.join(BUILD_DIR, libpng))
@@ -585,8 +595,9 @@ def go_setup():
 def go_main():
     b_zlib()
     b_bzip2()
-    b_snappy()
     b_ncurses()
+    b_openssl()
+    b_snappy()
     b_libtiff()
     b_libpng()
     b_openjpeg()
@@ -617,9 +628,9 @@ def run():
         sys.exit(0)
 
 if __name__ == '__main__':
-    #run()
+    run()
 
-    b_x265()
+    #b_x265()
     #b_ffmpeg()
     #go_setup()
     #b_snappy()
