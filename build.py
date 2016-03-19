@@ -27,8 +27,9 @@ if data.count('which') > 0:
 # print env
 os.system('export')
 
+cflagsopt = ''
 # native
-cflagsopt = '-march=native'
+#cflagsopt = '-march=native'
 #cflagsopt = '-march=native -fPIC'
 # dcs24 tape2
 #cflagsopt = '-march=core2 -msse4.1'
@@ -42,38 +43,92 @@ if sys.platform.startswith('linux'):
     appendopt += ' --enable-static --disable-shared'
 
 # define files
-xz = 'xz-5.0.4'
-yasm = 'yasm-1.2.0'
+downloadList = []
+downloadAuxList = []
+gitList = []
+
+xz = 'xz-5.2.2'
+downloadList.append(xz)
+
+yasm = 'yasm-1.3.0'
+downloadList.append(yasm)
+
 zlib = 'zlib-1.2.8'
+downloadList.append(zlib)
+
 bzip2 = 'bzip2-1.0.6'
-ncurses = 'ncurses-5.9'
-jasper = 'jasper-1.900.1'
-libpng = 'libpng-1.5.15'
-#libpng = 'libpng-1.6.2'
-openjpeg = 'openjpeg-1.5.0'  # 1.5.1 works with ffmpeg, none work with 2.0.0
+downloadList.append(bzip2)
+
+ncurses = 'ncurses-6.0'
+downloadList.append(ncurses)
+
+snappy = 'snappy-1.1.3'
+downloadList.append(snappy)
+
+libpng = 'libpng-1.6.21'
+downloadList.append(libpng)
+
+openjpeg = 'openjpeg-1.5.2'  # 1.5.1 works with ffmpeg, none work with 2.0.0
+downloadList.append(openjpeg)
+
 libtiff = 'tiff-4.0.3'
-libogg = 'libogg-1.3.1'
-libvorbis = 'libvorbis-1.3.3'
+downloadList.append(libtiff)
+
+libogg = 'libogg-1.3.2'
+downloadList.append(libogg)
+
+libvorbis = 'libvorbis-1.3.5'
+downloadList.append(libvorbis)
+
 libtheora = 'libtheora-1.1.1'
-libvpx = 'libvpx-1.1.0'
-libvpxgit = 'http://git.chromium.org/webm/libvpx.git'
-#libxml2 = 'libxml2-2.9.0'
-#expat = 'expat-2.1.0'
-#fontconfig = 'fontconfig-2.10.2'
-#freetype = 'freetype-2.4.10'
-faac = 'faac-1.28'
-vo_aacenc = 'vo-aacenc-0.1.2'
-speex = 'speex-1.2rc1'
+downloadList.append(libtheora)
+
+libvpx = 'libvpx-1.5.0'
+downloadList.append(libvpx)
+
+speex = 'speex-1.2rc2'
+downloadList.append(speex)
+
 lame = 'lame-3.99.5'
-x264 = 'x264-d9d2288'
-x264git = 'git://git.videolan.org/x264.git'
+downloadList.append(lame)
+
+twolame = 'twolame-0.3.13'
+downloadList.append(twolame)
+
+soxr = 'soxr-0.1.2'
+downloadList.append(soxr)
+downloadAuxList.append('soxr-0.1.2_static.patch')
+
+wavpack = 'wavpack-4.75.2'
+downloadList.append(wavpack)
+
+fdkaac = 'fdk-aac-0.1.4'
+downloadList.append(fdkaac)
+
+x264 = 'https://git.videolan.org/git/x264.git'
+gitList.append(['x264', x264])
 x264BitDepth = '8'
 x264Chroma = 'all'
-xvid = 'xvid-1.3.2'
-utvideo = 'utvideo-11.1.1'
-gpac = 'gpac-0.5.0'
-ffmpeggit = 'git://source.ffmpeg.org/ffmpeg.git'
-ffmbc = 'FFmbc-0.7-rc8'
+
+x265 = 'https://github.com/videolan/x265.git'
+gitList.append(['x265', x265])
+downloadAuxList.append('x265_makefile.patch')
+
+xvid = 'xvid-1.3.4'
+downloadList.append(xvid)
+
+nvenc = 'nvidia_video_sdk_6.0.1'
+downloadList.append(nvenc)
+
+blackmagic = 'Blackmagic_DeckLink_SDK_10.6.1'
+downloadList.append(blackmagic)
+
+#gpac = 'gpac-0.5.0'
+#downloadList.append(gpac)
+
+ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
+gitList.append(['ffmpeg', ffmpeg])
+
 
 #os.environ['ENV_ROOT'] = 'pwd'
 # source env.source
@@ -127,7 +182,7 @@ def cleanALL():
     cleanOUT_DIR_FILES()
 
 def prewarn():
-    print('\nneeded packages:\ngcc glibc-static git xz\n\n')
+    print('\nneeded packages:\ngcc glibc-static git cmake\n\n')
     x = 2
     while x > 0:
         print(x)
@@ -136,12 +191,10 @@ def prewarn():
 
 
 fileList = []
-for item in [
-        yasm, zlib, bzip2, ncurses, jasper, libtiff, libpng, openjpeg, libogg, libvorbis, libtheora,
-        faac, vo_aacenc, speex, lame, xvid,
-        utvideo, gpac, ffmbc
-        ]:
+for item in downloadList:
     fileList.append('%s.tar.xz' % item)
+for item in downloadAuxList:
+    fileList.append('%s.xz' % item)
 
 
 def f_getfiles():
@@ -173,14 +226,56 @@ def f_decompressfiles():
         else:
             print('%s already uncompressed' % fileName)
     f_sync()
-    git_libvpx()
-    git_ffmpeg()
-    git_x264()
+    for item in gitList:
+        git_clone(item[0], item[1])
     f_sync()
 
 def f_sync():
     print('\n*** Syncinig Hard Drive ***\n')
     os.system('sync')
+
+def build_yasm():
+    print('\n*** downloading yasm ***\n')
+    os.chdir(TAR_DIR)
+    server = 'http://www.ghosttoast.com/pub/ffmpeg'
+    fileName = '%s.tar.gz' % yasm
+    if os.path.exists(os.path.join(TAR_DIR, fileName.rstrip('.gz'))) is False:
+        try:
+            print('%s/%s' % (server, fileName))
+            response = urllib2.urlopen('%s/%s' % (server, fileName))
+            data = response.read()
+        except urllib2.HTTPError as e:
+            print('error downloading %s/%s %s' % (server, fileName, e))
+            sys.exit(1)
+        f = open(fileName, 'wb')
+        f.write(data)
+        f.close()
+    else:
+        print('%s already downloaded' % fileName.rstrip('.gz'))
+    f_sync()
+
+    print('\n*** Decompressing yasm ***\n')
+    os.chdir(BUILD_DIR)
+    if os.path.exists(os.path.join(TAR_DIR, fileName.rstrip('.gz'))) is False:
+        os.system('gunzip -v %s' % os.path.join(TAR_DIR, fileName))
+    else:
+        print('%s already uncompressed' % fileName)
+    f_sync()
+
+    print('\n*** Extracting yasm ***\n')
+    os.chdir(BUILD_DIR)
+    print(fileName.rstrip('.gz'))
+    tar = tarfile.open(os.path.join(TAR_DIR, fileName.rstrip('.gz')))
+    tar.extractall()
+    tar.close()
+    f_sync()
+
+    print('\n*** Building yasm ***\n')
+    os.chdir(os.path.join(BUILD_DIR, yasm))
+    os.system('./configure --prefix=%s' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
+    f_sync()
+
 
 def build_xz():
     print('\n*** downloading xz/liblzma ***\n')
@@ -224,72 +319,37 @@ def build_xz():
     os.system('make -j %s && make install' % cpuCount)
     f_sync()
 
-def git_libvpx():
-    print('\n*** Cloning libvpx ***\n')
-    if os.path.exists(os.path.join(BUILD_GIT_DIR, 'libvpx')):
+def git_clone(name, url):
+    print('\n*** Cloning %s ***\n' % name)
+    if os.path.exists(os.path.join(BUILD_GIT_DIR, name)):
         print('git pull')
-        os.chdir(os.path.join(BUILD_GIT_DIR, 'libvpx'))
+        os.chdir(os.path.join(BUILD_GIT_DIR, name))
         os.system('git pull')
     else:
+        print('git clone')
         os.chdir(BUILD_GIT_DIR)
-        os.system('git clone %s' % libvpxgit)
+        os.system('git clone %s' % url)
 
-def git_libvpx_deploy():
-    print('\n*** Deploy libvpx git to BUILD_DIR ***\n')
+def git_deploy(name):
+    print('\n*** Deploy %s git to BUILD_DIR ***\n' % name)
     os.chdir(BUILD_GIT_DIR)
-    os.system('cp -rf ./libvpx %s' % BUILD_DIR)
+    os.system('cp -rf ./%s %s' % (name, BUILD_DIR))
 
-def git_ffmpeg():
-    print('\n*** Cloning ffmpeg ***\n')
-    if os.path.exists(os.path.join(BUILD_GIT_DIR, 'ffmpeg')):
-        print('git pull')
-        os.chdir(os.path.join(BUILD_GIT_DIR, 'ffmpeg'))
-        os.system('git pull')
-    else:
-        os.chdir(BUILD_GIT_DIR)
-        os.system('git clone %s' % ffmpeggit)
-
-def git_ffmpeg_deploy():
-    print('\n*** Deploy ffmpeg git to BUILD_DIR ***\n')
-    if os.path.exists(os.path.join(BUILD_GIT_DIR, 'ffmpeg')):
-        os.chdir(BUILD_GIT_DIR)
-        os.system('cp -rf ./ffmpeg %s' % BUILD_DIR)
-
-def git_x264():
-    print('\n*** Cloning x264 ***\n')
-    if os.path.exists(os.path.join(BUILD_GIT_DIR, 'x264')):
-        print('git pull')
-        os.chdir(os.path.join(BUILD_GIT_DIR, 'x264'))
-        os.system('git pull')
-    else:
-        os.chdir(BUILD_GIT_DIR)
-        os.system('git clone %s' % x264git)
-
-def git_x264_deploy():
-    print('\n*** Deploy x264 git to BUILD_DIR ***\n')
-    if os.path.exists(os.path.join(BUILD_GIT_DIR, 'x264')):
-        os.chdir(BUILD_GIT_DIR)
-        os.system('cp -rf ./x264 %s' % BUILD_DIR)
 
 def f_extractfiles():
     global fileList
+    global gitList
     print('\n*** Extracting tar files ***\n')
     os.chdir(BUILD_DIR)
     for fileName in fileList:
-        print(fileName.rstrip('.xz'))
-        tar = tarfile.open(os.path.join(TAR_DIR, fileName.rstrip('.xz')))
-        tar.extractall()
-        tar.close()
-    git_libvpx_deploy()
-    git_ffmpeg_deploy()
-    git_x264_deploy()
+        if fileName.rstrip('.xz').lower().endswith('.tar'):
+            print(fileName.rstrip('.xz'))
+            tar = tarfile.open(os.path.join(TAR_DIR, fileName.rstrip('.xz')))
+            tar.extractall()
+            tar.close()
+    for item in gitList:
+        git_deploy(item[0])
     f_sync()
-
-def b_yasm():
-    print('\n*** Building yasm ***\n')
-    os.chdir(os.path.join(BUILD_DIR, yasm))
-    os.system('./configure --prefix=%s' % TARGET_DIR)
-    os.system('make -j %s && make install' % cpuCount)
 
 def b_zlib():
     print('\n*** Building zlib ***\n')
@@ -309,12 +369,6 @@ def b_ncurses():
     os.system('./configure --with-termlib --with-ticlib --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
-def b_jasper():
-    print('\n*** Building jasper (jp2) ***\n')
-    os.chdir(os.path.join(BUILD_DIR, jasper))
-    os.system('./configure --enable-shared=no --enable-static=yes --prefix=%s %s' % (TARGET_DIR, appendopt))
-    os.system('make -j %s && make install' % cpuCount)
-
 def b_libpng():
     print('\n*** Building libpng ***\n')
     os.chdir(os.path.join(BUILD_DIR, libpng))
@@ -324,6 +378,7 @@ def b_libpng():
 def b_openjpeg():
     print('\n*** Building openjpeg ***\n')
     os.chdir(os.path.join(BUILD_DIR, openjpeg))
+    os.system('./bootstrap.sh')
     os.system('./configure --disable-png --prefix=%s %s' % (TARGET_DIR, appendopt))  # openjpeg 1.5
     #os.system('cmake . -DCMAKE_INSTALL_PREFIX=%s -DBUILD_SHARED_LIBS:bool=off' % TARGET_DIR)  # openjpeg 2.0.0
     os.system('make -j %s && make install' % cpuCount)
@@ -349,50 +404,13 @@ def b_libvorbis():
 def b_libtheora():
     print('\n*** Building libtheora ***\n')
     os.chdir(os.path.join(BUILD_DIR, libtheora))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s --enable-static --disable-shared --disable-examples' % TARGET_DIR)
     os.system('make -j %s && make install' % cpuCount)
 
 def b_libvpx():
     print('\n*** Building libvpx ***\n')
-    #os.chdir(os.path.join(BUILD_DIR, libvpx))
-    os.chdir(os.path.join(BUILD_DIR, 'libvpx'))
+    os.chdir(os.path.join(BUILD_DIR, libvpx))
     os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
-    os.system('make -j %s && make install' % cpuCount)
-
-def b_expat():
-    print('\n*** Building expat ***\n')
-    os.chdir(os.path.join(BUILD_DIR, expat))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
-    os.system('make -j %s && make install' % cpuCount)
-
-def b_libxml2():
-    print('\n*** Building libxml2 ***\n')
-    os.chdir(os.path.join(BUILD_DIR, libxml2))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
-    os.system('make -j %s && make install' % cpuCount)
-
-def b_fontconfig():
-    print('\n*** Building fontconfig ***\n')
-    os.chdir(os.path.join(BUILD_DIR, fontconfig))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
-    os.system('make -j %s && make install' % cpuCount)
-
-def b_freetype():
-    print('\n*** Building freetype ***\n')
-    os.chdir(os.path.join(BUILD_DIR, freetype))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
-    os.system('make -j %s && make install' % cpuCount)
-
-def b_faac():
-    print('\n*** Building faac ***\n')
-    os.chdir(os.path.join(BUILD_DIR, faac))
-    os.system('./configure --prefix=%s --without-mp4v2 %s' % (TARGET_DIR, appendopt))
-    os.system('make -j %s && make install' % cpuCount)
-
-def b_vo_aacenc():
-    print('\n*** Building vo-aacenc ***\n')
-    os.chdir(os.path.join(BUILD_DIR, vo_aacenc))
-    os.system('./configure --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_speex():
@@ -407,6 +425,37 @@ def b_lame():
     os.system('./configure --disable-frontend --enable-shared=no --enable-static=yes --prefix=%s %s' % (TARGET_DIR, appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
+def b_twolame():
+    print('\n*** Building twolame ***\n')
+    os.chdir(os.path.join(BUILD_DIR, twolame))
+    os.system('./configure --disable-shared --prefix=%s' % (TARGET_DIR))
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_soxr():
+    print('\n*** Building soxr ***\n')
+    os.chdir(os.path.join(BUILD_DIR, soxr))
+    os.system('patch -p1 < %s' % (os.path.join(TAR_DIR, 'soxr-0.1.2_static.patch')))
+    os.system('./go')
+    os.chdir(os.path.join(BUILD_DIR, soxr, 'Release'))
+    os.system('export DESTDIR="%s";make install' % TARGET_DIR)
+    # installs to /usr/local , copy to TARGET_DIR and delete /usr/local
+    os.chdir(os.path.join(TARGET_DIR, 'usr', 'local'))
+    os.system('cp -rf ./ %s' % TARGET_DIR)
+    os.chdir(TARGET_DIR)
+    os.system('rm -rf ./usr')
+
+def b_wavpack():
+    print('\n*** Building wavpack ***\n')
+    os.chdir(os.path.join(BUILD_DIR, wavpack))
+    os.system('./configure --prefix=%s' % (TARGET_DIR))
+    os.system('make -j %s && make install' % cpuCount)
+
+def b_fdkaac():
+    print('\n*** Building fdk-aac ***\n')
+    os.chdir(os.path.join(BUILD_DIR, fdkaac))
+    os.system('./configure --prefix=%s' % (TARGET_DIR))
+    os.system('make -j %s && make install' % cpuCount)
+
 def b_x264():
     print('\n*** Building x264 ***\n')
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
@@ -417,43 +466,47 @@ def b_x264():
     os.system('./configure --prefix=%s --disable-cli --disable-opencl --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s %s' % (TARGET_DIR, x264BitDepth, x264Chroma, x264appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
-def b_x264full():
-    print('\n*** Build x264 Full ***\n')
-    os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
-    os.system('make clean')
-    os.system('./configure --prefix=%s --disable-opencl --enable-static --bit-depth=%s --chroma-format=%s --extra-cflags=\'--static -I%s\' --extra-ldflags=\'-L%s -static -static-libgcc\'' % (TARGET_DIR, x264BitDepth, x264Chroma, os.path.join(TARGET_DIR, 'include'), os.path.join(TARGET_DIR, 'lib')))
-    os.system('make -j %s && make install' % cpuCount)
+def b_x265():
+    print('\n*** Build x265 ***\n')
+    os.chdir(os.path.join(BUILD_DIR, 'x265', 'build', 'linux'))  # for git checkout
+    os.system('patch < %s' % (os.path.join(TAR_DIR, 'x265_makefile.patch')))
+    os.system('./make-Makefiles.bash')
+    os.system('make')
+    os.system('export DESTDIR=%s;make install' % TARGET_DIR)
+    # installs to /usr/local , copy to TARGET_DIR and delete /usr/local
+    os.chdir(os.path.join(TARGET_DIR, 'usr', 'local'))
+    os.system('cp -rf ./ %s' % TARGET_DIR)
+    os.chdir(TARGET_DIR)
+    os.system('rm -rf ./usr')
+
 
 def b_xvid():
     print('\n*** Building xvid ***\n')
     os.chdir(os.path.join(BUILD_DIR, xvid, 'build', 'generic'))
-    os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
+    os.system('./configure --prefix=%s' % TARGET_DIR)
     os.system('make -j %s && make install' % cpuCount)
     #os.system('rm -f %s' % os.path.join(TARGET_DIR, 'lib', 'libxvidcore.so.*'))
 
-def b_utvideo():
-    print('\n*** Building utvideo ***\n')
-    os.chdir(os.path.join(BUILD_DIR, utvideo))
-    #os.system('./configure --prefix=%s --enable-static --disable-shared' % TARGET_DIR)
-    #os.system('make CXXFLAGS="-g -O2 -Wall -Wextra -Wno-multichar -Wno-unused-parameter -Wno-sign-compare -fPIC" -j %s && make prefix=%s install' % (cpuCount, TARGET_DIR))
-    os.system('make -j %s && make prefix=%s install' % (cpuCount, TARGET_DIR))
+def b_snappy():
+    print('\n*** Building snappy ***\n')
+    os.chdir(os.path.join(BUILD_DIR, snappy))
+    os.system('make clean')
+    os.system('./configure --disable-shared --prefix=%s' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
 
-def b_gpac():
-    print('\n*** Building gpac ***\n')
-    os.chdir(os.path.join(BUILD_DIR, 'gpac'))
-    confcmd = './configure --prefix=%s --disable-ssl --disable-ipv6 --disable-wx --disable-platinum --disable-alsa --disable-oss-audio --disable-jack --disable-pulseaudio --disable-x11-shm --disable-x11-xv --use-ft=no --use-faad=no --use-jpeg=no --use-png=no --use-mad=no --use-xvid=no --use-ffmpeg=no --use-ogg=no --use-vorbis=no --use-theora=no --use-openjpeg=no --use-a52=no --enable-static-bin' % TARGET_DIR
-    confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
-    confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
-    os.system(confcmd)
-    os.system('make lib -j %s' % cpuCount)
-    os.system('make install-lib')
+def b_blackmagic():
+    print('\n*** Deploying Blackmagic SDK ***\n')
+    os.chdir(os.path.join(BUILD_DIR, blackmagic, 'Linux', 'include'))
+    os.system('cp -f ./* %s' % os.path.join(TARGET_DIR, 'include'))
+
+def b_nvenc():
+    print('\n*** Deploying nvenc (Nvidia Video SDK) ***\n')
+    os.chdir(os.path.join(BUILD_DIR, nvenc, 'Samples', 'common', 'inc'))
+    os.system('cp -f ./nvEncodeAPI.h %s' % os.path.join(TARGET_DIR, 'include'))
 
 def b_ffmpeg():
     print('\n*** Building ffmpeg ***\n')
     os.chdir(os.path.join(BUILD_DIR,'ffmpeg'))
-
-    # patch prores4444 FourCC codec
-    #os.system('patch -p1 < %s' % os.path.join(ENV_ROOT, 'patchprores444.diff'))
 
     confcmd = './configure --prefix=%s' % TARGET_DIR
     confcmd += ' --extra-version=static'
@@ -463,6 +516,7 @@ def b_ffmpeg():
     if sys.platform.startswith('linux'):
         confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
         confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
+        confcmd += ' --pkg-config-flags="--static"'
     confcmd += ' --enable-gpl'
     confcmd += ' --enable-version3'
     confcmd += ' --enable-nonfree'
@@ -471,18 +525,26 @@ def b_ffmpeg():
     confcmd += ' --disable-ffserver'
     confcmd += ' --enable-bzlib'
     confcmd += ' --enable-zlib'
-    confcmd += ' --enable-libfaac'
+    #confcmd += ' --enable-libbluray'
+    confcmd += ' --enable-libfdk-aac'
     confcmd += ' --enable-libmp3lame'
     confcmd += ' --enable-libopenjpeg'
+    #confcmd += ' --enable-opus'
+    #confcmd += ' --enable-librtmp'
     confcmd += ' --enable-libvorbis'
     confcmd += ' --enable-libtheora'
     confcmd += ' --enable-libvpx'
-    confcmd += ' --enable-libutvideo'
-    confcmd += ' --enable-libvo-aacenc'
     confcmd += ' --enable-libspeex'
-    #confcmd += ' --enable-libfreetype'
-    #confcmd += ' --enable-fontconfig'
     confcmd += ' --enable-libx264'
+    confcmd += ' --enable-libx265'
+    #confcmd += ' --enable-libsnappy'
+    #confcmd += ' --enable-libsoxr'
+    confcmd += ' --enable-libtwolame'
+    confcmd += ' --enable-libwavpack'
+    #confcmd += ' --enable-webp'
+    confcmd += ' --enable-nvenc'
+    confcmd += ' --enable-openssl'
+    #confcfg += ' --enable-libschrodeinger'
     confcmd += ' --disable-devices'
     confcmd += ' --enable-lto'
     #confcmd += ' --enable-hardcoded-tables'
@@ -494,46 +556,9 @@ def b_ffmpeg():
     os.system('make tools/qt-faststart')
     os.system('cp tools/qt-faststart %s' % os.path.join(TARGET_DIR, 'bin'))
 
-def b_ffmbc():
-    print('\n*** Building ffmbc ***\n')
-    os.chdir(os.path.join(BUILD_DIR, ffmbc))
-    confcmd = './configure --prefix=%s' % TARGET_DIR
-    confcmd += ' --extra-version=static'
-    confcmd += ' --disable-debug'
-    confcmd += ' --enable-static'
-    confcmd += ' --disable-shared'
-    if sys.platform.startswith('linux'):
-        confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
-        confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
-    confcmd += ' --enable-gpl'
-    confcmd += ' --enable-nonfree'
-    confcmd += ' --disable-doc'
-    confcmd += ' --disable-ffplay'
-    confcmd += ' --enable-bzlib'
-    confcmd += ' --enable-zlib'
-    confcmd += ' --enable-libfaac'
-    confcmd += ' --enable-libmp3lame'
-    confcmd += ' --enable-libopenjpeg'
-    confcmd += ' --enable-libvorbis'
-    confcmd += ' --enable-libtheora'
-    confcmd += ' --enable-libvpx'
-    confcmd += ' --enable-libspeex'
-    confcmd += ' --enable-libx264'
-    confcmd += ' --disable-devices'
-
-    os.system('make distclean')
-    os.system(confcmd)
-    #os.system('make -j %s && make install' % cpuCount)
-    os.system('make -j %s' % cpuCount)
-    # auto "install"
-    #os.system('make install')
-    # manual "install"
-    os.system('cp -f ffmbc %s' % os.path.join(TARGET_DIR, 'bin', 'ffmbc'))
-    os.system('cp -f ffprobe %s' % os.path.join(TARGET_DIR, 'bin', 'ffmbcprobe'))
-
 def out_pack():
     os.chdir(OUT_DIR)
-    for item in ['ffmpeg', 'ffprobe', 'ffmbc', 'ffmbcprobe', 'x264', 'tiffcp', 'tiffinfo', 'qt-faststart']:
+    for item in ['ffmpeg', 'ffprobe', 'x264', 'tiffcp', 'tiffinfo', 'qt-faststart']:
         os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
     os.system('strip *')
     os.chdir(ENV_ROOT)
@@ -543,15 +568,24 @@ def out_pack():
 def u_striplibs():
     os.system('strip %s/*' % os.path.join(TARGET_DIR, 'lib'))
 
-def go_get():
+def go_setup():
+    prewarn()
+    cleanOUT_DIR_FILES()
+    cleanOUT_DIR()
+    cleanTARGET_DIR()
+    cleanBUILD_DIR()
+    #cleanTAR_DIR()
+    setupDIR()
+    build_yasm()
+    build_xz()
     f_getfiles()
     f_decompressfiles()
+    f_extractfiles()
 
 def go_main():
-    f_extractfiles()
-    b_yasm()
     b_zlib()
     b_bzip2()
+    b_snappy()
     b_ncurses()
     b_libtiff()
     b_libpng()
@@ -560,53 +594,35 @@ def go_main():
     b_libvorbis()
     b_libtheora()
     b_libvpx()
-    #b_expat()
-    #b_libxml2()
-    #b_fontconfig()
-    #b_freetype()
-    b_faac()
-    b_vo_aacenc()
     b_speex()
     b_lame()
+    b_twolame()
+    b_soxr()
+    b_wavpack()
+    b_fdkaac()
     b_x264()
+    b_x265()
     b_xvid()
-    b_utvideo()
-
-def go_ffmpeg():
-    b_ffmpeg()
-    b_ffmbc()
-
-
-def go_x264full():
-    b_ffmpeg()
-    b_gpac()
-    b_x264full()
+    b_blackmagic()
+    b_nvenc()
 
 def run():
     try:
-        prewarn()
-        cleanOUT_DIR_FILES()
-        cleanOUT_DIR()
-        cleanTARGET_DIR()
-        cleanBUILD_DIR()
-        #cleanTAR_DIR()
-        setupDIR()
-        build_xz()
-        go_get()
+        go_setup()
         go_main()
-        go_ffmpeg()
-        b_gpac()
-        b_x264full()
-        out_pack()
+        #b_ffmpeg()
+        #out_pack()
     except KeyboardInterrupt:
         print('\nBye\n')
         sys.exit(0)
 
 if __name__ == '__main__':
-    run()
-    #b_x264full()
-    #b_gpac()
-    #b_ffmpeg()
-    #b_ffmbc()
+    #run()
 
+    b_x265()
+    #b_ffmpeg()
+    #go_setup()
+    #b_snappy()
+    #b_openjpeg()
+    #b_libtheora()
 
