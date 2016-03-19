@@ -62,7 +62,7 @@ downloadList.append(bzip2)
 ncurses = 'ncurses-6.0'
 downloadList.append(ncurses)
 
-openssl = 'openssl-1.02g'
+openssl = 'openssl-1.0.2g'
 downloadList.append(openssl)
 
 snappy = 'snappy-1.1.3'
