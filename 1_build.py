@@ -155,7 +155,7 @@ os.putenv('LD_LIBRARY_PATH', '%s:%s' % (os.path.join(TARGET_DIR, 'lib'), ENV_LD_
 os.putenv('PKG_CONFIG_PATH', os.path.join(TARGET_DIR, 'lib', 'pkgconfig'))
 ENV_CFLAGS = '-I%s' % os.path.join(TARGET_DIR, 'include')
 os.putenv('CFLAGS', ENV_CFLAGS)
-os.putenv('LDFLAGS', '-L%s' % os.path.join(TARGET_DIR, 'lib'))
+os.putenv('LDFLAGS', '-L%s -static -static-libgcc' % os.path.join(TARGET_DIR, 'lib'))
 os.system('export')
 
 
@@ -519,7 +519,7 @@ def b_ffmpeg():
 
 
     # modify env
-    ENV_CFLAGS_NEW = '%s -static -static-libgcc -static-libstdc++' % ENV_CFLAGS
+    ENV_CFLAGS_NEW = '%s --static' % ENV_CFLAGS
     os.putenv('CFLAGS', ENV_CFLAGS_NEW)
 
     confcmd = ''
