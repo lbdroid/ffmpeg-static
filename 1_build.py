@@ -25,7 +25,7 @@ if data.count('which') > 0:
     sys.exit(0)
 
 # print env
-os.system('export')
+os.system('export 2>/dev/null')
 
 cflagsopt = ''
 # native
@@ -141,24 +141,22 @@ BUILD_DIR = os.path.join(ENV_ROOT, 'build')
 BUILD_GIT_DIR = os.path.join(ENV_ROOT, 'sourcegit')
 TAR_DIR = os.path.join(ENV_ROOT, 'sourcetar')
 
-#
-try:
-    BUILD_NUMBER = os.getenv['BUILD_NUMBER']
-except:
-    BUILD_NUMBER = '0'
-print('BUILD_NUMBER: %s' % BUILD_NUMBER)
 OUT_FOLDER = 'output'
 OUT_DIR = os.path.join(ENV_ROOT, OUT_FOLDER)
 
 
 # setup ENV
-envpath = os.getenv('PATH')
-addpath = os.path.join(TARGET_DIR, 'bin')
+ENV_PATH_ORIG = os.getenv('PATH')
+ENV_LD_ORIG = os.getenv('LD_LIBRARY_PATH')
 if sys.platform.startswith('darwin'):
     addpath += ':/opt/local/bin'
-os.putenv('PATH', '%s:%s' % (addpath, envpath))
+os.putenv('PATH', '%s:%s' % (os.path.join(TARGET_DIR, 'bin'), ENV_PATH_ORIG))
+os.putenv('LD_LIBRARY_PATH', '%s:%s' % (os.path.join(TARGET_DIR, 'lib'), ENV_LD_ORIG))
 os.putenv('PKG_CONFIG_PATH', os.path.join(TARGET_DIR, 'lib', 'pkgconfig'))
-os.putenv('CFLAGS', cflagsopt)
+ENV_CFLAGS = '-I%s' % os.path.join(TARGET_DIR, 'include')
+os.putenv('CFLAGS', ENV_CFLAGS)
+os.putenv('LDFLAGS', '-L%s' % os.path.join(TARGET_DIR, 'lib'))
+os.system('export')
 
 
 def setupDIR():
@@ -514,39 +512,46 @@ def b_nvenc():
     os.chdir(os.path.join(BUILD_DIR, nvenc, 'Samples', 'common', 'inc'))
     os.system('cp -f ./nvEncodeAPI.h %s' % os.path.join(TARGET_DIR, 'include'))
 
+
 def b_ffmpeg():
     print('\n*** Building ffmpeg ***\n')
     os.chdir(os.path.join(BUILD_DIR,'ffmpeg'))
 
-    confcmd = './configure --prefix=%s' % TARGET_DIR
+
+    # modify env
+    ENV_CFLAGS_NEW = '%s -static -static-libgcc -static-libstdc++' % ENV_CFLAGS
+    os.putenv('CFLAGS', ENV_CFLAGS_NEW)
+
+    confcmd = ''
+    confcmd += './configure --prefix=%s' % TARGET_DIR
     confcmd += ' --extra-version=static'
-    confcmd += ' --disable-debug'
-    confcmd += ' --enable-static'
-    confcmd += ' --disable-shared'
-    if sys.platform.startswith('linux'):
-        confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
-        confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
-        confcmd += ' --pkg-config-flags="--static"'
+    #if sys.platform.startswith('linux'):
+    #    confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
+    #    confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
+    confcmd += ' --pkg-config-flags="--static"'
     confcmd += ' --enable-gpl'
     confcmd += ' --enable-version3'
     confcmd += ' --enable-nonfree'
+    confcmd += ' --enable-static'
+    confcmd += ' --disable-shared'
+    confcmd += ' --disable-debug'
+    confcmd += ' --enable-runtime-cpudetect'
     confcmd += ' --disable-doc'
     confcmd += ' --disable-ffplay'
-    confcmd += ' --disable-ffserver'
     confcmd += ' --enable-bzlib'
     confcmd += ' --enable-zlib'
     #confcmd += ' --enable-libbluray'
     confcmd += ' --enable-libfdk-aac'
     confcmd += ' --enable-libmp3lame'
-    confcmd += ' --enable-libopenjpeg'
+    #confcmd += ' --enable-libopenjpeg'
     #confcmd += ' --enable-opus'
     #confcmd += ' --enable-librtmp'
-    confcmd += ' --enable-libvorbis'
-    confcmd += ' --enable-libtheora'
+    #confcmd += ' --enable-libvorbis'
+    #confcmd += ' --enable-libtheora'
     confcmd += ' --enable-libvpx'
-    confcmd += ' --enable-libspeex'
-    confcmd += ' --enable-libx264'
-    confcmd += ' --enable-libx265'
+    #confcmd += ' --enable-libspeex'
+    #confcmd += ' --enable-libx264'
+    #confcmd += ' --enable-libx265'
     #confcmd += ' --enable-libsnappy'
     #confcmd += ' --enable-libsoxr'
     confcmd += ' --enable-libtwolame'
@@ -556,7 +561,7 @@ def b_ffmpeg():
     confcmd += ' --enable-openssl'
     #confcfg += ' --enable-libschrodeinger'
     confcmd += ' --disable-devices'
-    confcmd += ' --enable-lto'
+    #confcmd += ' --enable-lto'
     #confcmd += ' --enable-hardcoded-tables'
     #confcmd += ' --disable-safe-bitstream-reader'
 
@@ -565,6 +570,9 @@ def b_ffmpeg():
     os.system('make -j %s && make install' % cpuCount)
     os.system('make tools/qt-faststart')
     os.system('cp tools/qt-faststart %s' % os.path.join(TARGET_DIR, 'bin'))
+
+    # restore env
+    os.putenv('CFLAGS', ENV_CFLAGS)
 
 def out_pack():
     os.chdir(OUT_DIR)
@@ -628,10 +636,10 @@ def run():
         sys.exit(0)
 
 if __name__ == '__main__':
-    run()
+    #run()
 
     #b_x265()
-    #b_ffmpeg()
+    b_ffmpeg()
     #go_setup()
     #b_snappy()
     #b_openjpeg()
