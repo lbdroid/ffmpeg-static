@@ -100,7 +100,6 @@ downloadList.append(twolame)
 
 soxr = 'soxr-0.1.2'
 downloadList.append(soxr)
-downloadAuxList.append('soxr-0.1.2_static.patch')
 
 wavpack = 'wavpack-4.75.2'
 downloadList.append(wavpack)
@@ -115,19 +114,19 @@ x264Chroma = 'all'
 
 x265 = 'https://github.com/videolan/x265.git'
 gitList.append(['x265', x265])
-downloadAuxList.append('x265_makefile.patch')
 
 xvid = 'xvid-1.3.4'
 downloadList.append(xvid)
+downloadAuxList.append('xvid_Makefile.patch')
+
+dcadec = 'dcadec-0.2.0'
+downloadList.append(dcadec)
 
 nvenc = 'nvidia_video_sdk_6.0.1'
 downloadList.append(nvenc)
 
 blackmagic = 'Blackmagic_DeckLink_SDK_10.6.1'
 downloadList.append(blackmagic)
-
-#gpac = 'gpac-0.5.0'
-#downloadList.append(gpac)
 
 ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
 gitList.append(['ffmpeg', ffmpeg])
@@ -155,7 +154,8 @@ os.putenv('LD_LIBRARY_PATH', '%s:%s' % (os.path.join(TARGET_DIR, 'lib'), ENV_LD_
 os.putenv('PKG_CONFIG_PATH', os.path.join(TARGET_DIR, 'lib', 'pkgconfig'))
 ENV_CFLAGS = '-I%s' % os.path.join(TARGET_DIR, 'include')
 os.putenv('CFLAGS', ENV_CFLAGS)
-os.putenv('LDFLAGS', '-L%s -static -static-libgcc' % os.path.join(TARGET_DIR, 'lib'))
+ENV_LDFLAGS = '-L%s -static -static-libgcc -static-libstdc++' % os.path.join(TARGET_DIR, 'lib')
+os.putenv('LDFLAGS', ENV_LDFLAGS)
 os.system('export')
 
 
@@ -442,62 +442,56 @@ def b_twolame():
 def b_soxr():
     print('\n*** Building soxr ***\n')
     os.chdir(os.path.join(BUILD_DIR, soxr))
-    os.system('patch -p1 < %s' % (os.path.join(TAR_DIR, 'soxr-0.1.2_static.patch')))
-    os.system('./go')
+    os.system('mkdir Release')
     os.chdir(os.path.join(BUILD_DIR, soxr, 'Release'))
-    os.system('export DESTDIR="%s";make install' % TARGET_DIR)
-    # installs to /usr/local , copy to TARGET_DIR and delete /usr/local
-    os.chdir(os.path.join(TARGET_DIR, 'usr', 'local'))
-    os.system('cp -rf ./ %s' % TARGET_DIR)
-    os.chdir(TARGET_DIR)
-    os.system('rm -rf ./usr')
+    os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DBUILD_SHARED_LIBS:bool=off ..' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
 
 def b_wavpack():
     print('\n*** Building wavpack ***\n')
     os.chdir(os.path.join(BUILD_DIR, wavpack))
-    os.system('./configure --prefix=%s' % (TARGET_DIR))
+    os.system('./configure --prefix=%s --disable-shared' % (TARGET_DIR))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_fdkaac():
     print('\n*** Building fdk-aac ***\n')
     os.chdir(os.path.join(BUILD_DIR, fdkaac))
-    os.system('./configure --prefix=%s' % (TARGET_DIR))
+    os.system('./configure --prefix=%s --disable-shared' % (TARGET_DIR))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_x264():
     print('\n*** Building x264 ***\n')
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
-    if appendopt == '':
-        x264appendopt = '--shared'
-    else:
-        x264appendopt = appendopt
     os.system('./configure --prefix=%s --disable-cli --disable-opencl --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s %s' % (TARGET_DIR, x264BitDepth, x264Chroma, x264appendopt))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_x265():
     print('\n*** Build x265 ***\n')
     os.chdir(os.path.join(BUILD_DIR, 'x265', 'build', 'linux'))  # for git checkout
-    os.system('patch < %s' % (os.path.join(TAR_DIR, 'x265_makefile.patch')))
-    os.system('./make-Makefiles.bash')
-    os.system('make')
-    os.system('export DESTDIR=%s;make install' % TARGET_DIR)
-    # installs to /usr/local , copy to TARGET_DIR and delete /usr/local
-    os.chdir(os.path.join(TARGET_DIR, 'usr', 'local'))
-    os.system('cp -rf ./ %s' % TARGET_DIR)
-    os.chdir(TARGET_DIR)
-    os.system('rm -rf ./usr')
-
+    os.system('cmake -G "Unix Makefiles" -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DENABLE_SHARED:bool=off ../../source' % TARGET_DIR)
+    os.system('make -j %s && make install' % cpuCount)
 
 def b_xvid():
     print('\n*** Building xvid ***\n')
     os.chdir(os.path.join(BUILD_DIR, xvid, 'build', 'generic'))
+    # apply patch for static only build
+    os.system('cp -f %s ./' % os.path.join(TAR_DIR, 'xvid_Makefile.patch'))
+    os.system('patch -f < xvid_Makefile.patch')
     os.system('./configure --prefix=%s' % TARGET_DIR)
     os.system('make -j %s && make install' % cpuCount)
     #os.system('rm -f %s' % os.path.join(TARGET_DIR, 'lib', 'libxvidcore.so.*'))
 
+def b_dcadec():
+    print('\n*** Building dcadec ***\n')
+    os.chdir(os.path.join(BUILD_DIR, dcadec))
+    os.system('export DESTDIR=%s; PREFIX=""; make -j %s && make install' % (TARGET_DIR, cpuCount))
+
 def b_snappy():
     print('\n*** Building snappy ***\n')
     os.chdir(os.path.join(BUILD_DIR, snappy))
+    # CXX FLAGS
+    os.putenv('CXXFLAGS', ENV_CFLAGS)
+
     os.system('make clean')
     os.system('./configure --disable-shared --prefix=%s' % TARGET_DIR)
     os.system('make -j %s && make install' % cpuCount)
@@ -521,13 +515,14 @@ def b_ffmpeg():
     # modify env
     ENV_CFLAGS_NEW = '%s --static' % ENV_CFLAGS
     os.putenv('CFLAGS', ENV_CFLAGS_NEW)
+    ENV_LDFLAGS_NEW = ENV_LDFLAGS
+    ENV_LDFLAGS_NEW += ' -fopenmp'  # openmp is needed by soxr
+    #ENV_LDFLAGS_NEW += ' -lstdc++'  # stdc++ is needed by snappy
+    os.putenv('LDFLAGS', ENV_LDFLAGS_NEW)
 
     confcmd = ''
     confcmd += './configure --prefix=%s' % TARGET_DIR
     confcmd += ' --extra-version=static'
-    #if sys.platform.startswith('linux'):
-    #    confcmd += ' --extra-cflags=\'--static %s -I%s\'' % (cflagsopt, os.path.join(TARGET_DIR, 'include'))
-    #    confcmd += ' --extra-ldflags=\'-L%s -static -static-libgcc\'' % os.path.join(TARGET_DIR, 'lib')
     confcmd += ' --pkg-config-flags="--static"'
     confcmd += ' --enable-gpl'
     confcmd += ' --enable-version3'
@@ -541,26 +536,27 @@ def b_ffmpeg():
     confcmd += ' --enable-bzlib'
     confcmd += ' --enable-zlib'
     #confcmd += ' --enable-libbluray'
+    confcmd += ' --enable-libdcadec'
     confcmd += ' --enable-libfdk-aac'
     confcmd += ' --enable-libmp3lame'
-    #confcmd += ' --enable-libopenjpeg'
+    confcmd += ' --enable-libopenjpeg'
     #confcmd += ' --enable-opus'
     #confcmd += ' --enable-librtmp'
-    #confcmd += ' --enable-libvorbis'
-    #confcmd += ' --enable-libtheora'
+    confcmd += ' --enable-libvorbis'
+    confcmd += ' --enable-libtheora'
     confcmd += ' --enable-libvpx'
-    #confcmd += ' --enable-libspeex'
-    #confcmd += ' --enable-libx264'
-    #confcmd += ' --enable-libx265'
+    confcmd += ' --enable-libspeex'
+    confcmd += ' --enable-libx264'
+    confcmd += ' --enable-libx265'
     #confcmd += ' --enable-libsnappy'
-    #confcmd += ' --enable-libsoxr'
+    confcmd += ' --enable-libsoxr'
     confcmd += ' --enable-libtwolame'
     confcmd += ' --enable-libwavpack'
     #confcmd += ' --enable-webp'
     confcmd += ' --enable-nvenc'
     confcmd += ' --enable-openssl'
     #confcfg += ' --enable-libschrodeinger'
-    confcmd += ' --disable-devices'
+    #confcmd += ' --disable-devices'
     #confcmd += ' --enable-lto'
     #confcmd += ' --enable-hardcoded-tables'
     #confcmd += ' --disable-safe-bitstream-reader'
@@ -573,6 +569,7 @@ def b_ffmpeg():
 
     # restore env
     os.putenv('CFLAGS', ENV_CFLAGS)
+    os.putenv('LDFLAGS', ENV_LDFLAGS)
 
 def out_pack():
     os.chdir(OUT_DIR)
@@ -605,7 +602,7 @@ def go_main():
     b_bzip2()
     b_ncurses()
     b_openssl()
-    b_snappy()
+    #b_snappy()
     b_libtiff()
     b_libpng()
     b_openjpeg()
@@ -622,6 +619,7 @@ def go_main():
     b_x264()
     b_x265()
     b_xvid()
+    b_dcadec()
     b_blackmagic()
     b_nvenc()
 
@@ -629,19 +627,15 @@ def run():
     try:
         go_setup()
         go_main()
-        #b_ffmpeg()
-        #out_pack()
+        b_ffmpeg()
+        out_pack()
     except KeyboardInterrupt:
         print('\nBye\n')
         sys.exit(0)
 
 if __name__ == '__main__':
-    #run()
+    run()
 
-    #b_x265()
-    b_ffmpeg()
-    #go_setup()
     #b_snappy()
-    #b_openjpeg()
-    #b_libtheora()
+    #b_ffmpeg()
 
