@@ -38,6 +38,7 @@ Codecs
 * twolame
 * wavpack
 * nvenc (h264/hevc nVidia)
+* blackmagic (Decklink I/O)
 * openssl
 
 Codecs TODO
@@ -46,7 +47,7 @@ Codecs TODO
 * opus
 * schrodeinger
 * iLBC
-* libmfx
+* libmfx (Intel HW accel)
 * OpenCORE AMR
 * RTMPDump
 * VisualOn AMR-WB
@@ -59,7 +60,9 @@ Codecs TODO
 * libxml2 (dependency)
 * libblurray
 * libbs2b
-* libcaca
+* kvazaar (HEVC)
+* openh264
+* vid.stab (video stabilization)
 
 
 Debug
