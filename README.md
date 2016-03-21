@@ -1,13 +1,17 @@
 FFmpeg static build
 ===================
 
-Three scripts to make a static build of ffmpeg with all the latest codecs (webm + h264).
+Three scripts to make a static build of ffmpeg with all the latest codecs and non-free/non-redistributable.
 
 Just follow the instructions below. Once you have the build dependencies,
 just run ./build.py, wait and you should get the ffmpeg binary in target/bin
 
-Build dependencies
+Build dependencies (WIP)
 ------------------
+
+	# Redhat & Centos
+	$ yum groupinstall "Development Tools"
+	$ yum install git glibc-static libstdc++-static cmake 
 
     # Debian & Ubuntu
     $ apt-get install build-essential curl tar <FIXME???>
@@ -17,17 +21,46 @@ Build dependencies
 	# (apple login needed)
 	# <FIXME???>
 
-Build & "install"
------------------
 
-    $ ./build.sh
-    # ... wait ...
-    # binaries can be found in ./target/bin/
+Codecs
+------
+* dcadec
+* fdk-aac (non-free)
+* mp3lame
+* openjpeg
+* vorbis
+* theora
+* vpx
+* speex
+* x264
+* x265
+* soxr
+* twolame
+* wavpack
+* nvenc (h264/hevc nVidia)
+* openssl
 
-NOTE: If you're going to use the h264 presets, make sure to copy them along the binaries. For ease, you can put them in your home folder like this:
+Codecs TODO
+-----------
+* webp
+* opus
+* schrodeinger
+* iLBC
+* libmfx
+* OpenCORE AMR
+* RTMPDump
+* VisualOn AMR-WB
+* z.lib (zimg)
+* GSM
+* FreeType
+* Fontconfig
+* Frei0r
+* libass
+* libxml2 (dependency)
+* libblurray
+* libbs2b
+* libcaca
 
-    $ mkdir ~/.ffmpeg
-    $ cp ./target/share/ffmpeg/*.ffpreset ~/.ffmpeg
 
 Debug
 -----
@@ -42,31 +75,16 @@ You can then enter the source folders and make the compilation yourself
 	$ ./configure --prefix=$TARGET_DIR #...
 	# ...
 
-Remaining links
----------------
-
-I'm not sure it's a good idea to statically link those, but it probably
-means the executable won't work across distributions or even across releases.
-
-    # On Ubuntu 10.04:
-    $ ldd build/bin/ffmpeg
-	linux-gate.so.1 =>  (0xb78df000)
-	libm.so.6 => /lib/tls/i686/cmov/libm.so.6 (0xb789f000)
-	libz.so.1 => /lib/libz.so.1 (0xb788a000)
-	libpthread.so.0 => /lib/tls/i686/cmov/libpthread.so.0 (0xb7870000)
-	libc.so.6 => /lib/tls/i686/cmov/libc.so.6 (0xb7716000)
-	/lib/ld-linux.so.2 (0xb78e0000)
-
-    # on OSX 10.6.4:
-    $ otool -L ffmpeg 
-	ffmpeg:
-		/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 125.2.0)
 
 TODO
 ----
 
- * Add some tests to check that video output is correctly generated
-   this would help upgrading the package without too much work
- * OSX's xvidcore does not detect yasm correctly
- * remove remaining libs
+ * update `env.source` with the values that match `1_build.py` 
+ * add Python3 support
+ * compile `git` to remove OS library dependency
+ * compile `cmake` to remove OS library dependency
+ * `nasm` support in `mp3lame` (compile ourselves?)
+ * test on OS X
+ * add support for more codecs and libraries
+
  
