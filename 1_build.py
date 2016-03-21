@@ -577,7 +577,7 @@ def b_ffmpeg():
 
 def out_pack():
     os.chdir(OUT_DIR)
-    for item in ['ffmpeg', 'ffprobe', 'x264', 'tiffcp', 'tiffinfo', 'qt-faststart']:
+    for item in ['ffmpeg', 'ffprobe', 'tiffcp', 'tiffinfo', 'qt-faststart']:
         os.system('cp -f {0} ./'.format(os.path.join(TARGET_DIR, 'bin', item)))
     os.system('strip *')
     os.chdir(ENV_ROOT)
@@ -642,4 +642,5 @@ if __name__ == '__main__':
 
     #b_x264()
     #b_ffmpeg()
+    #out_pack()
 
