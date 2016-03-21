@@ -462,7 +462,7 @@ def b_fdkaac():
 def b_x264():
     print('\n*** Building x264 ***\n')
     os.chdir(os.path.join(BUILD_DIR, 'x264'))  # for git checkout
-    os.system('./configure --prefix=%s --disable-cli --disable-opencl --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s %s' % (TARGET_DIR, x264BitDepth, x264Chroma, x264appendopt))
+    os.system('./configure --prefix=%s --enable-static --disable-cli --disable-opencl --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (TARGET_DIR, x264BitDepth, x264Chroma))
     os.system('make -j %s && make install' % cpuCount)
 
 def b_x265():
@@ -484,7 +484,11 @@ def b_xvid():
 def b_dcadec():
     print('\n*** Building dcadec ***\n')
     os.chdir(os.path.join(BUILD_DIR, dcadec))
-    os.system('export DESTDIR=%s; PREFIX=""; make -j %s && make install' % (TARGET_DIR, cpuCount))
+    os.putenv('DESTDIR', TARGET_DIR)
+    os.putenv('PREFIX', "")
+    os.system('make -j %s && make install' % cpuCount)
+    os.unsetenv('DESTDIR')
+    os.unsetenv('PREFIX')
 
 def b_snappy():
     print('\n*** Building snappy ***\n')
@@ -636,6 +640,6 @@ def run():
 if __name__ == '__main__':
     run()
 
-    #b_snappy()
+    #b_x264()
     #b_ffmpeg()
 
