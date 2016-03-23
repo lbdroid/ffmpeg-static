@@ -28,8 +28,9 @@ if data.count('which') > 0:
 
 class ffmpeg_build():
 
-    def __init__(self, nonfree=False):
+    def __init__(self, nonfree=False, cflags=''):
         self.nonfree = nonfree
+        self.cflagsopt = cflags
 
         self.cpuCount = multiprocessing.cpu_count()
 
@@ -39,9 +40,9 @@ class ffmpeg_build():
 
 
     # print env
-    os.system('export 2>/dev/null')
+    #os.system('export 2>/dev/null')
 
-    cflagsopt = ''
+    #cflagsopt = ''
     # native
     #cflagsopt = '-march=native'
     #cflagsopt = '-march=native -fPIC'
@@ -648,12 +649,14 @@ class ffmpeg_build():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--nonfree', dest='nonfree',
+    parser.add_argument('--nonfree', dest='nonfree',
             help='build non-free/non-redist', action='store_true',
             default=False)
+    parser.add_argument('--cflags', dest='cflags',
+            help='add extra CFLAGS, like -march=native')
     args = parser.parse_args()
 
-    ffmpegb = ffmpeg_build(nonfree=args.nonfree)
+    ffmpegb = ffmpeg_build(nonfree=args.nonfree, cflags=args.cflags)
     ffmpegb.run()
 
 
