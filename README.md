@@ -3,8 +3,9 @@ FFmpeg static build
 
 Three scripts to make a static build of ffmpeg with all the latest codecs and non-free/non-redistributable.
 
-Just follow the instructions below. Once you have the build dependencies,
-just run ./build.py, wait and you should get the ffmpeg binary in target/bin
+Just follow the instructions below. Once you have the build dependencies,  
+just run ./build.py, wait and you should get the ffmpeg binary in target/bin  
+to build a non-free/non-redist `./build.py --nonfree`  
 
 Build dependencies (WIP)
 ------------------
@@ -16,16 +17,14 @@ Build dependencies (WIP)
     # Debian & Ubuntu
     $ apt-get install build-essential curl tar <FIXME???>
 
-	# OS X
+	# OS X - NOT TESTED
 	# install XCode, it can be found at http://developer.apple.com/
 	# (apple login needed)
 	# <FIXME???>
 
-
 Codecs
 ------
 * dcadec
-* fdk-aac (non-free)
 * mp3lame
 * openjpeg
 * vorbis
@@ -37,8 +36,13 @@ Codecs
 * soxr
 * twolame
 * wavpack
-* nvenc (h264/hevc nVidia)
 * blackmagic (Decklink I/O)
+
+Codecs - nonfree
+----------------
+* openssl
+* nvenc (h264/hevc nVidia)
+* fdk-aac
 * openssl
 
 Codecs TODO
@@ -82,7 +86,7 @@ You can then enter the source folders and make the compilation yourself
 TODO
 ----
 
- * update `env.source` with the values that match `1_build.py` 
+ * update `env.source` with the values that match `build.py` 
  * add Python3 support
  * compile `git` to remove OS library dependency
  * compile `cmake` to remove OS library dependency
