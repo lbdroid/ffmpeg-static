@@ -36,6 +36,9 @@ Codecs
 * soxr
 * twolame
 * wavpack
+* webp
+* opus
+* iLBC
 * blackmagic (Decklink I/O)
 
 Codecs - nonfree
@@ -47,16 +50,13 @@ Codecs - nonfree
 
 Codecs TODO
 -----------
-* webp
-* opus
 * schrodeinger
-* iLBC
 * libmfx (Intel HW accel)
 * OpenCORE AMR
 * RTMPDump
 * VisualOn AMR-WB
 * z.lib (zimg)
-* GSM
+* GSM - TODO - fix Makefile install /inc
 * FreeType
 * Fontconfig
 * Frei0r
@@ -65,7 +65,6 @@ Codecs TODO
 * libblurray
 * libbs2b
 * kvazaar (HEVC)
-* openh264
 * vid.stab (video stabilization)
 
 

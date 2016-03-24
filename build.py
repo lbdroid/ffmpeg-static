@@ -32,6 +32,8 @@ class ffmpeg_build():
         self.nonfree = nonfree
         self.cflagsopt = cflags
 
+        self.web_server = 'http://www.ghosttoast.com/pub/ffmpeg'
+
         self.cpuCount = multiprocessing.cpu_count()
 
         self.app_list()
@@ -63,6 +65,12 @@ class ffmpeg_build():
 
         self.yasm = 'yasm-1.3.0'
         self.downloadList.append(self.yasm)
+
+        self.git = 'git-2.7.4'
+        self.downloadList.append(self.git)
+
+        self.cmake = 'cmake-3.5.0'
+        self.downloadList.append(self.cmake)
 
         self.zlib = 'zlib-1.2.8'
         self.downloadList.append(self.zlib)
@@ -138,6 +146,18 @@ class ffmpeg_build():
 
         self.blackmagic = 'Blackmagic_DeckLink_SDK_10.6.1'
         self.downloadList.append(self.blackmagic)
+
+        self.libgsm = 'libgsm-1.0.13-4'
+        self.downloadList.append(self.libgsm)
+
+        self.libilbc = 'libilbc-20141214-git-ef04ebe'
+        self.downloadList.append(self.libilbc)
+
+        self.webp = 'libwebp-0.5.0'
+        self.downloadList.append(self.webp)
+
+        self.opus = 'opus-1.1.2'
+        self.downloadList.append(self.opus)
 
         self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
         self.gitList.append(['ffmpeg', self.ffmpeg])
@@ -215,15 +235,14 @@ class ffmpeg_build():
     def f_getfiles(self):
         print('\n*** Downloading files ***\n')
         os.chdir(self.TAR_DIR)
-        server = 'http://www.ghosttoast.com/pub/ffmpeg'
         for fileName in self.fileList:
             if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
                 try:
-                    print('%s/%s' % (server, fileName))
-                    response = urllib2.urlopen('%s/%s' % (server, fileName))
+                    print('%s/%s' % (self.web_server, fileName))
+                    response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
                     data = response.read()
                 except urllib2.HTTPError as e:
-                    print('error downloading %s/%s %s' % (server, fileName, e))
+                    print('error downloading %s/%s %s' % (self.web_server, fileName, e))
                     sys.exit(1)
                 f = open(fileName, 'wb')
                 f.write(data)
@@ -253,15 +272,14 @@ class ffmpeg_build():
     def build_yasm(self):
         print('\n*** downloading yasm ***\n')
         os.chdir(self.TAR_DIR)
-        server = 'http://www.ghosttoast.com/pub/ffmpeg'
         fileName = '%s.tar.gz' % self.yasm
         if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
             try:
-                print('%s/%s' % (server, fileName))
-                response = urllib2.urlopen('%s/%s' % (server, fileName))
+                print('%s/%s' % (self.web_server, fileName))
+                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
                 data = response.read()
             except urllib2.HTTPError as e:
-                print('error downloading %s/%s %s' % (server, fileName, e))
+                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
                 sys.exit(1)
             f = open(fileName, 'wb')
             f.write(data)
@@ -295,15 +313,14 @@ class ffmpeg_build():
     def build_xz(self):
         print('\n*** downloading xz/liblzma ***\n')
         os.chdir(self.TAR_DIR)
-        server = 'http://www.ghosttoast.com/pub/ffmpeg'
         fileName = '%s.tar.gz' % self.xz
         if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
             try:
-                print('%s/%s' % (server, fileName))
-                response = urllib2.urlopen('%s/%s' % (server, fileName))
+                print('%s/%s' % (self.web_server, fileName))
+                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
                 data = response.read()
             except urllib2.HTTPError as e:
-                print('error downloading %s/%s %s' % (server, fileName, e))
+                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
                 sys.exit(1)
             f = open(fileName, 'wb')
             f.write(data)
@@ -333,6 +350,13 @@ class ffmpeg_build():
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
         self.f_sync()
+
+    def build_git(self):
+        print('\n*** downloading git ***\n')
+        os.chdir(self.TAR_DIR)
+        fileName = '%s.tar.xz' % ''
+
+
 
     def git_clone(self, name, url):
         print('\n*** Cloning %s ***\n' % name)
@@ -519,6 +543,31 @@ class ffmpeg_build():
         os.chdir(os.path.join(self.BUILD_DIR, self.nvenc, 'Samples', 'common', 'inc'))
         os.system('cp -f ./nvEncodeAPI.h %s' % os.path.join(self.TARGET_DIR, 'include'))
 
+    def b_libgsm(self):
+        print('\n*** Building libgsm ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.libgsm))
+        os.putenv('INSTALL_ROOT', self.TARGET_DIR)
+        os.system('make -j %s && make install' % self.cpuCount)
+        os.unsetenv('INSTALL_ROOT')
+
+    def b_libilbc(self):
+        print('\n*** Building libilbc ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.libilbc))
+        os.system('./configure --disable-shared --prefix=%s' % self.TARGET_DIR)
+        os.system('make -j %s && make install' % self.cpuCount)
+
+    def b_webp(self):
+        print('\n*** Building webp ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.webp))
+        os.system('./configure --disable-shared --prefix=%s' % self.TARGET_DIR)
+        os.system('make -j %s && make install' % self.cpuCount)
+
+    def b_opus(self):
+        print('\n*** Building opus ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.opus))
+        os.system('./configure --disable-shared --prefix=%s' % self.TARGET_DIR)
+        os.system('make -j %s && make install' % self.cpuCount)
+
     def b_ffmpeg(self):
         print('\n*** Building ffmpeg ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, 'ffmpeg'))
@@ -550,7 +599,7 @@ class ffmpeg_build():
         confcmd += ' --enable-libdcadec'
         confcmd += ' --enable-libmp3lame'
         confcmd += ' --enable-libopenjpeg'
-        #confcmd += ' --enable-opus'
+        confcmd += ' --enable-libopus'
         #confcmd += ' --enable-librtmp'
         confcmd += ' --enable-libvorbis'
         confcmd += ' --enable-libtheora'
@@ -562,7 +611,9 @@ class ffmpeg_build():
         confcmd += ' --enable-libsoxr'
         confcmd += ' --enable-libtwolame'
         confcmd += ' --enable-libwavpack'
-        #confcmd += ' --enable-webp'
+        #confcmd += ' --enable-libgsm'  # TODO fix headers /inc
+        confcmd += ' --enable-libilbc'
+        confcmd += ' --enable-libwebp'
         #confcfg += ' --enable-libschrodeinger'
         #confcmd += ' --disable-devices'
         #confcmd += ' --enable-lto'
@@ -631,6 +682,10 @@ class ffmpeg_build():
         self.b_x265()
         self.b_xvid()
         self.b_dcadec()
+        self.b_libgsm()
+        self.b_libilbc()
+        self.b_webp()
+        self.b_opus()
         self.b_blackmagic()
         if self.nonfree:
             self.b_fdkaac()
