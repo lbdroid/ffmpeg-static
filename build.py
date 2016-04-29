@@ -138,9 +138,6 @@ class ffmpeg_build():
         self.downloadList.append(self.xvid)
         self.downloadAuxList.append('xvid_Makefile.patch')
 
-        self.dcadec = 'dcadec-0.2.0'
-        self.downloadList.append(self.dcadec)
-
         self.nvenc = 'nvidia_video_sdk_6.0.1'
         self.downloadList.append(self.nvenc)
 
@@ -515,15 +512,6 @@ class ffmpeg_build():
         os.system('make -j %s && make install' % self.cpuCount)
         #os.system('rm -f %s' % os.path.join(TARGET_DIR, 'lib', 'libxvidcore.so.*'))
 
-    def b_dcadec(self):
-        print('\n*** Building dcadec ***\n')
-        os.chdir(os.path.join(self.BUILD_DIR, self.dcadec))
-        os.putenv('DESTDIR', self.TARGET_DIR)
-        os.putenv('PREFIX', "")
-        os.system('make -j %s && make install' % self.cpuCount)
-        os.unsetenv('DESTDIR')
-        os.unsetenv('PREFIX')
-
     def b_snappy(self):
         print('\n*** Building snappy ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.snappy))
@@ -596,7 +584,6 @@ class ffmpeg_build():
         confcmd += ' --enable-bzlib'
         confcmd += ' --enable-zlib'
         #confcmd += ' --enable-libbluray'
-        confcmd += ' --enable-libdcadec'
         confcmd += ' --enable-libmp3lame'
         confcmd += ' --enable-libopenjpeg'
         confcmd += ' --enable-libopus'
@@ -681,7 +668,6 @@ class ffmpeg_build():
         self.b_x264()
         self.b_x265()
         self.b_xvid()
-        self.b_dcadec()
         self.b_libgsm()
         self.b_libilbc()
         self.b_webp()
