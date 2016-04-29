@@ -144,7 +144,7 @@ class ffmpeg_build():
         self.nvenc = 'nvidia_video_sdk_6.0.1'
         self.downloadList.append(self.nvenc)
 
-        self.blackmagic = 'Blackmagic_DeckLink_SDK_10.6.1'
+        self.blackmagic = 'Blackmagic_DeckLink_SDK_10.6.4'
         self.downloadList.append(self.blackmagic)
 
         self.libgsm = 'libgsm-1.0.13-4'
