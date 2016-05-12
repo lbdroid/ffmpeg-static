@@ -23,7 +23,7 @@ Build dependencies (WIP)
     $ yum install git glibc-static libstdc++-static cmake 
 
     # Debian & Ubuntu
-    $ apt-get install build-essential cmake python 
+    $ apt-get install build-essential cmake python autoconf
 
     # OS X - NOT TESTED
     # OS X DOES NOT SHIP STATIC LIBRARIES, this prevents 100% static binaries from being built. so I really do not care about OS X.
