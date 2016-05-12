@@ -10,17 +10,25 @@ to build a non-free/non-redist `./build.py --nonfree`
 Build dependencies (WIP)
 ------------------
 
-	# Redhat & Centos
-	$ yum groupinstall "Development Tools"
-	$ yum install git glibc-static libstdc++-static cmake 
+    # Redhat & Centos 6x
+    $ yum groupinstall "Development Tools"
+    $ yum install git glibc-static libstdc++-static
+    $ # EPEL required
+    $ rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+    $ yum install cmake3
+    $ ln -s /usr/bin/cmake3 /usr/bin/cmake
+
+    # Redhat & Centos 7x
+    $ yum groupinstall "Development Tools"
+    $ yum install git glibc-static libstdc++-static cmake 
 
     # Debian & Ubuntu
-    $ apt-get install build-essential curl tar <FIXME???>
+    $ apt-get install build-essential cmake python 
 
-	# OS X - NOT TESTED
-	# install XCode, it can be found at http://developer.apple.com/
-	# (apple login needed)
-	# <FIXME???>
+    # OS X - NOT TESTED
+    # OS X DOES NOT SHIP STATIC LIBRARIES, this prevents 100% static binaries from being built.
+    # install XCode, it can be found at http://developer.apple.com/
+
 
 Codecs
 ------
