@@ -66,10 +66,10 @@ class ffmpeg_build():
         self.yasm = 'yasm-1.3.0'
         self.downloadList.append(self.yasm)
 
-        self.git = 'git-2.7.4'
+        self.git = 'git-2.10.1'
         self.downloadList.append(self.git)
 
-        self.cmake = 'cmake-3.5.0'
+        self.cmake = 'cmake-3.6.2'
         self.downloadList.append(self.cmake)
 
         self.zlib = 'zlib-1.2.8'
@@ -81,13 +81,13 @@ class ffmpeg_build():
         self.ncurses = 'ncurses-6.0'
         self.downloadList.append(self.ncurses)
 
-        self.openssl = 'openssl-1.0.2g'
+        self.openssl = 'openssl-1.0.2j'
         self.downloadList.append(self.openssl)
 
         self.snappy = 'snappy-1.1.3'
         self.downloadList.append(self.snappy)
 
-        self.libpng = 'libpng-1.6.21'
+        self.libpng = 'libpng-1.6.25'
         self.downloadList.append(self.libpng)
 
         self.openjpeg = 'openjpeg-1.5.2'  # ffmpeg works with 1.5, not 2.0
@@ -105,7 +105,7 @@ class ffmpeg_build():
         self.libtheora = 'libtheora-1.1.1'
         self.downloadList.append(self.libtheora)
 
-        self.libvpx = 'libvpx-1.5.0'
+        self.libvpx = 'libvpx-1.6.0'
         self.downloadList.append(self.libvpx)
 
         self.speex = 'speex-1.2rc2'
@@ -120,7 +120,7 @@ class ffmpeg_build():
         self.soxr = 'soxr-0.1.2'
         self.downloadList.append(self.soxr)
 
-        self.wavpack = 'wavpack-4.75.2'
+        self.wavpack = 'wavpack-4.80.0'
         self.downloadList.append(self.wavpack)
 
         self.fdkaac = 'fdk-aac-0.1.4'
@@ -138,10 +138,10 @@ class ffmpeg_build():
         self.downloadList.append(self.xvid)
         self.downloadAuxList.append('xvid_Makefile.patch')
 
-        self.nvenc = 'nvidia_video_sdk_6.0.1'
+        self.nvenc = 'nvidia_video_sdk_7.0.1'
         self.downloadList.append(self.nvenc)
 
-        self.blackmagic = 'Blackmagic_DeckLink_SDK_10.6.4'
+        self.blackmagic = 'Blackmagic_DeckLink_SDK_10.8'
         self.downloadList.append(self.blackmagic)
 
         self.libgsm = 'libgsm-1.0.13-4'
