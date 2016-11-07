@@ -398,7 +398,7 @@ class ffmpeg_build():
         self.f_sync()
 
         print('\n*** Building curl ***\n')
-        os.chdir(os.path.join(self.BUILD_DIR, self.git))
+        os.chdir(os.path.join(self.BUILD_DIR, self.curl))
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
         self.f_sync()
