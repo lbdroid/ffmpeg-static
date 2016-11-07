@@ -733,14 +733,10 @@ class ffmpeg_build():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--nonfree', dest='nonfree',
-            help='build non-free/non-redist', action='store_true',
-            default=False)
-    parser.add_argument('--cflags', dest='cflags',
-            help='add extra CFLAGS, like -march=native')
+    parser.add_argument('--nonfree', dest='nonfree', help='build non-free/non-redist', action='store_true', default=False)
+    parser.add_argument('--cflags', dest='cflags', help='add extra CFLAGS, like -march=native')
+    parser.add_argument('--static', dest='build_static', help='build static', action='store_true', default=False)
     args = parser.parse_args()
 
-    ffmpegb = ffmpeg_build(nonfree=args.nonfree, cflags=args.cflags)
+    ffmpegb = ffmpeg_build(nonfree=args.nonfree, cflags=args.cflags, build_static=args.build_static)
     ffmpegb.run()
-
-
