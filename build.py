@@ -384,7 +384,7 @@ class ffmpeg_build():
         print('\n*** Decompressing curl ***\n')
         os.chdir(self.BUILD_DIR)
         if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            os.system('%s -v %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
+            os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
         else:
             print('%s already uncompressed' % fileName)
         self.f_sync()
@@ -425,7 +425,7 @@ class ffmpeg_build():
         print('\n*** Decompressing git ***\n')
         os.chdir(self.BUILD_DIR)
         if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            os.system('%s -v %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
+            os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
         else:
             print('%s already uncompressed' % fileName)
         self.f_sync()
@@ -466,7 +466,7 @@ class ffmpeg_build():
         print('\n*** Decompressing cmake ***\n')
         os.chdir(self.BUILD_DIR)
         if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            os.system('%s -v %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
+            os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
         else:
             print('%s already uncompressed' % fileName)
         self.f_sync()
