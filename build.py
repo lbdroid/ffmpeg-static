@@ -28,9 +28,10 @@ if data.count('which') > 0:
 
 class ffmpeg_build():
 
-    def __init__(self, nonfree=False, cflags=''):
+    def __init__(self, nonfree=False, cflags='', build_static=False):
         self.nonfree = nonfree
         self.cflagsopt = cflags
+        self.build_static = build_static
 
         self.web_server = 'http://www.ghosttoast.com/pub/ffmpeg'
 
@@ -186,7 +187,11 @@ class ffmpeg_build():
         os.putenv('PKG_CONFIG_PATH', os.path.join(self.TARGET_DIR, 'lib', 'pkgconfig'))
         self.ENV_CFLAGS = '-I%s' % os.path.join(self.TARGET_DIR, 'include')
         os.putenv('CFLAGS', self.ENV_CFLAGS)
-        self.ENV_LDFLAGS = '-L%s -static -static-libgcc -static-libstdc++' % os.path.join(self.TARGET_DIR, 'lib')
+        self.ENV_LDFLAGS = ''
+        self.ENV_LDFLAGS += '-L%s' % os.path.join(self.TARGET_DIR, 'lib')
+        if self.build_static is True:
+            self.ENV_LDFLAGS += '%s -static -static-libgcc -static-libstdc++' % self.ENV_LDFLAGS
+
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
         os.system('export')
 
@@ -387,7 +392,10 @@ class ffmpeg_build():
     def b_zlib(self):
         print('\n*** Building zlib ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.zlib))
-        os.system('export CFLAGS="$CFLAGS -fPIC";./configure --prefix=%s --static' % self.TARGET_DIR)
+        cfgcmd = 'export CFLAGS="$CFLAGS -fPIC";./configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --static'
+        os.system(cfgcmd)
         os.system('export CFLAGS="$CFLAGS -fPIC";make -j %s && make install' % self.cpuCount)
 
     def b_bzip2(self):
@@ -425,8 +433,13 @@ class ffmpeg_build():
     def b_libtiff(self):
         print('\n*** Building libtiff ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.libtiff))
-        os.system('export CFLAGS="--static -I%s";export LDFLAGS="-L%s -static -static-libgcc";./configure --prefix=%s --enable-shared=no --enable-static=yes' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.TARGET_DIR))
-        os.system('export CFLAGS="--static -I%s";export LDFLAGS="-L%s -static -static-libgcc";make -j %s && make install' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.cpuCount))
+        if self.build_static is True:
+            os.system('export CFLAGS="--static -I%s";export LDFLAGS="-L%s -static -static-libgcc";./configure --prefix=%s --enable-shared=no --enable-static=yes' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.TARGET_DIR))
+            os.system('export CFLAGS="--static -I%s";export LDFLAGS="-L%s -static -static-libgcc";make -j %s && make install' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.cpuCount))
+        else:
+            os.system('export CFLAGS="-I%s";export LDFLAGS="-L%s";./configure --prefix=%s --enable-shared=yes --enable-static=no' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.TARGET_DIR))
+            os.system('export CFLAGS="-I%s";export LDFLAGS="-L%s";make -j %s && make install' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.cpuCount))
+
 
     def b_libogg(self):
         print('\n*** Building libogg ***\n')
@@ -443,13 +456,23 @@ class ffmpeg_build():
     def b_libtheora(self):
         print('\n*** Building libtheora ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.libtheora))
-        os.system('./configure --prefix=%s --enable-static --disable-shared --disable-examples' % self.TARGET_DIR)
+        cfgcmd = './configure --prefix=%s --disable-examples' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --enable-static --disable-shared'
+        else:
+            cfgcmd += ' --disable-static --enabled-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_libvpx(self):
         print('\n*** Building libvpx ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.libvpx))
-        os.system('./configure --prefix=%s --enable-static --disable-shared' % self.TARGET_DIR)
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --enable-static --disable-shared'
+        else:
+            cfgcmd += ' --disable-static --enable-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_speex(self):
@@ -461,13 +484,21 @@ class ffmpeg_build():
     def b_lame(self):
         print('\n*** Building lame ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.lame))
-        os.system('./configure --disable-frontend --enable-shared=no --enable-static=yes --prefix=%s' % self.TARGET_DIR)
+        cfgcmd = './configure --disable-frontend --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --enable-shared=no --enable-static=yes'
+        else:
+            cfgcmd += ' --enable-shared=yes --enable-static=no'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_twolame(self):
         print('\n*** Building twolame ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.twolame))
-        os.system('./configure --disable-shared --prefix=%s' % (self.TARGET_DIR))
+        cfgcmd = './configure --prefix=%s' % (self.TARGET_DIR)
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_soxr(self):
@@ -493,7 +524,10 @@ class ffmpeg_build():
     def b_x264(self):
         print('\n*** Building x264 ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, 'x264'))  # for git checkout
-        os.system('./configure --prefix=%s --enable-static --disable-cli --disable-opencl --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (self.TARGET_DIR, self.x264BitDepth, self.x264Chroma))
+        cfgcmd = './configure --prefix=%s --enable-static --disable-cli --disable-opencl --disable-swscale --disable-lavf --disable-ffms --disable-gpac --bit-depth=%s --chroma-format=%s' % (self.TARGET_DIR, self.x264BitDepth, self.x264Chroma)
+        if self.build_static is True:
+            cfgcmd += ' --enable-static'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_x265(self):
@@ -505,9 +539,10 @@ class ffmpeg_build():
     def b_xvid(self):
         print('\n*** Building xvid ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.xvid, 'build', 'generic'))
-        # apply patch for static only build
-        os.system('cp -f %s ./' % os.path.join(self.TAR_DIR, 'xvid_Makefile.patch'))
-        os.system('patch -f < xvid_Makefile.patch')
+        if self.build_static is True:
+            # apply patch for static only build
+            os.system('cp -f %s ./' % os.path.join(self.TAR_DIR, 'xvid_Makefile.patch'))
+            os.system('patch -f < xvid_Makefile.patch')
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
         #os.system('rm -f %s' % os.path.join(TARGET_DIR, 'lib', 'libxvidcore.so.*'))
@@ -562,7 +597,10 @@ class ffmpeg_build():
 
 
         # modify env
-        ENV_CFLAGS_NEW = '%s --static' % self.ENV_CFLAGS
+
+        ENV_CFLAGS_NEW = '%s' % self.ENV_CFLAGS
+        if self.build_static is True:
+            ENV_CFLAGS_NEW += ' --static'
         os.putenv('CFLAGS', ENV_CFLAGS_NEW)
         ENV_LDFLAGS_NEW = self.ENV_LDFLAGS
         ENV_LDFLAGS_NEW += ' -fopenmp'  # openmp is needed by soxr
@@ -572,11 +610,16 @@ class ffmpeg_build():
         confcmd = ''
         confcmd += './configure --prefix=%s' % self.TARGET_DIR
         confcmd += ' --extra-version=static'
-        confcmd += ' --pkg-config-flags="--static"'
+        if self.build_static is True:
+            confcmd += ' --pkg-config-flags="--static"'
         confcmd += ' --enable-gpl'
         confcmd += ' --enable-version3'
-        confcmd += ' --enable-static'
-        confcmd += ' --disable-shared'
+        if self.build_static is True:
+            confcmd += ' --enable-static'
+            confcmd += ' --disable-shared'
+        else:
+            confcmd += ' --disable-static'
+            confcmd += ' --enable-static'
         confcmd += ' --disable-debug'
         confcmd += ' --enable-runtime-cpudetect'
         confcmd += ' --disable-doc'
