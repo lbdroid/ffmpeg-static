@@ -41,7 +41,6 @@ class ffmpeg_build():
         self.setup_folder_vars()
         self.setup_env_vars()
 
-
     # print env
     #os.system('export 2>/dev/null')
 
@@ -67,6 +66,9 @@ class ffmpeg_build():
         self.yasm = 'yasm-1.3.0'
         self.downloadList.append(self.yasm)
 
+        self.curl = 'curl-7.51.0'
+        self.downloadList.append(self.curl)
+
         self.git = 'git-2.10.2'
         self.downloadList.append(self.git)
 
@@ -91,7 +93,7 @@ class ffmpeg_build():
         self.libpng = 'libpng-1.6.26'
         self.downloadList.append(self.libpng)
 
-        self.openjpeg = 'openjpeg-1.5.2'  # ffmpeg works with 1.5, not 2.0
+        self.openjpeg = 'openjpeg-1.5.2'  # ffmpeg works with 1.x, not 2.x
         self.downloadList.append(self.openjpeg)
 
         self.libtiff = 'tiff-4.0.6'
@@ -360,6 +362,47 @@ class ffmpeg_build():
         os.system('make -j %s && make install' % self.cpuCount)
         self.f_sync()
 
+    def build_curl(self):
+        print('\n*** downloading curl ***\n')
+        os.chdir(self.TAR_DIR)
+        fileName = '%s.tar.gz' % self.curl
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+            try:
+                print('%s/%s' % (self.web_server, fileName))
+                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
+                data = response.read()
+            except urllib2.HTTPError as e:
+                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
+                sys.exit(1)
+            f = open(fileName, 'wb')
+            f.write(data)
+            f.close()
+        else:
+            print('%s already downloaded' % fileName.rstrip('.gz'))
+        self.f_sync()
+
+        print('\n*** Decompressing curl ***\n')
+        os.chdir(self.BUILD_DIR)
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
+        else:
+            print('%s already uncompressed' % fileName)
+        self.f_sync()
+
+        print('\n*** Extracting curl ***\n')
+        os.chdir(self.BUILD_DIR)
+        print(fileName.rstrip('.gz'))
+        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
+        tar.extractall()
+        tar.close()
+        self.f_sync()
+
+        print('\n*** Building curl ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.git))
+        os.system('./configure --prefix=%s' % self.TARGET_DIR)
+        os.system('make -j %s && make install' % self.cpuCount)
+        self.f_sync()
+
     def build_git(self):
         print('\n*** downloading git ***\n')
         os.chdir(self.TAR_DIR)
@@ -397,6 +440,47 @@ class ffmpeg_build():
 
         print('\n*** Building git ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.git))
+        os.system('./configure --prefix=%s' % self.TARGET_DIR)
+        os.system('make -j %s && make install' % self.cpuCount)
+        self.f_sync()
+
+    def build_cmake(self):
+        print('\n*** downloading cmake ***\n')
+        os.chdir(self.TAR_DIR)
+        fileName = '%s.tar.gz' % self.cmake
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+            try:
+                print('%s/%s' % (self.web_server, fileName))
+                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
+                data = response.read()
+            except urllib2.HTTPError as e:
+                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
+                sys.exit(1)
+            f = open(fileName, 'wb')
+            f.write(data)
+            f.close()
+        else:
+            print('%s already downloaded' % fileName.rstrip('.gz'))
+        self.f_sync()
+
+        print('\n*** Decompressing cmake ***\n')
+        os.chdir(self.BUILD_DIR)
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
+        else:
+            print('%s already uncompressed' % fileName)
+        self.f_sync()
+
+        print('\n*** Extracting cmake ***\n')
+        os.chdir(self.BUILD_DIR)
+        print(fileName.rstrip('.gz'))
+        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
+        tar.extractall()
+        tar.close()
+        self.f_sync()
+
+        print('\n*** Building cmake ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.cmake))
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
         self.f_sync()
@@ -785,11 +869,13 @@ class ffmpeg_build():
         self.setupDIR()
         self.build_yasm()
         self.build_xz()
+        self.build_curl()
         self.build_git()
+        self.build_cmake()
         self.f_getfiles()
         self.f_decompressfiles()
         self.f_extractfiles()
-        self.b_cmake()
+        #self.b_cmake()
 
     def go_main(self):
         self.b_zlib()
