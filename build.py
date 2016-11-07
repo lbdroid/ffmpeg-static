@@ -186,8 +186,9 @@ class ffmpeg_build():
         os.putenv('PATH', '%s:%s' % (os.path.join(self.TARGET_DIR, 'bin'), self.ENV_PATH_ORIG))
         os.putenv('LD_LIBRARY_PATH', '%s:%s' % (os.path.join(self.TARGET_DIR, 'lib'), self.ENV_LD_ORIG))
         os.putenv('PKG_CONFIG_PATH', os.path.join(self.TARGET_DIR, 'lib', 'pkgconfig'))
-        self.ENV_CFLAGS = '-I%s' % os.path.join(self.TARGET_DIR, 'include')
+        self.ENV_CFLAGS = '-I%s' % (os.path.join(self.TARGET_DIR, 'include'),)
         os.putenv('CFLAGS', self.ENV_CFLAGS)
+        os.putenv('CPPFLAGS', self.ENV_CFLAGS)
         self.ENV_LDFLAGS = ''
         self.ENV_LDFLAGS += '-L%s' % os.path.join(self.TARGET_DIR, 'lib')
         if self.build_static is True:
@@ -603,6 +604,7 @@ class ffmpeg_build():
         if self.build_static is True:
             ENV_CFLAGS_NEW += ' --static'
         os.putenv('CFLAGS', ENV_CFLAGS_NEW)
+        os.putenv('CPPFLAGS', ENV_CFLAGS_NEW)
         ENV_LDFLAGS_NEW = self.ENV_LDFLAGS
         ENV_LDFLAGS_NEW += ' -fopenmp'  # openmp is needed by soxr
         #ENV_LDFLAGS_NEW += ' -lstdc++'  # stdc++ is needed by snappy
@@ -664,6 +666,7 @@ class ffmpeg_build():
 
         # restore env
         os.putenv('CFLAGS', self.ENV_CFLAGS)
+        os.putenv('CPPFLAGS', self.ENV_CFLAGS)
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
 
     def out_pack(self):
