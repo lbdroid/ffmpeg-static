@@ -553,6 +553,8 @@ class ffmpeg_build():
         cfgcmd = './Configure --prefix=%s linux-x86_64' % (self.TARGET_DIR)
         if self.build_static is True:
             cfgcmd += ' no-shared'
+        else:
+            cfgcmd += ' shared'
         os.system(cfgcmd)
         os.system('make depend')
         os.system('make -j %s && make install' % self.cpuCount)
