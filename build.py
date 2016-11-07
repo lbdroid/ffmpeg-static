@@ -422,7 +422,7 @@ class ffmpeg_build():
     def b_libpng(self):
         print('\n*** Building libpng ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.libpng))
-        os.system('./configure --prefix=%s' % self.TARGET_DIR)
+        os.system('./configure --prefix={0}'.format(self.TARGET_DIR))
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_openjpeg(self):
@@ -462,7 +462,7 @@ class ffmpeg_build():
         if self.build_static is True:
             cfgcmd += ' --enable-static --disable-shared'
         else:
-            cfgcmd += ' --disable-static --enabled-shared'
+            cfgcmd += ' --disable-static'
         os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
@@ -555,7 +555,10 @@ class ffmpeg_build():
         # CXX FLAGS
         os.putenv('CXXFLAGS', self.ENV_CFLAGS)  # TODO, check if this is actually useful
         os.system('make clean')
-        os.system('./configure --disable-shared --prefix=%s' % self.TARGET_DIR)
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_blackmagic(self):
