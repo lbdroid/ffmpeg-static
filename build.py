@@ -207,6 +207,11 @@ class ffmpeg_build():
     def setupDIR(self):
         for item in [self.ENV_ROOT, self.TARGET_DIR, self.BUILD_DIR, self.BUILD_GIT_DIR, self.TAR_DIR, self.OUT_DIR]:
             os.system('mkdir -p %s' % item)
+        old_dir = os.getcwd()
+        os.chdir(self.TARGET_DIR)
+        os.system('mkdir -p lib')
+        os.system('ln -s lib lib64')
+        os.chdir(old_dir)
 
     def cleanTARGET_DIR(self):
         os.system('rm -rf %s' % self.TARGET_DIR)
@@ -921,15 +926,24 @@ class ffmpeg_build():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--nonfree', dest='nonfree', help='build non-free/non-redist', action='store_true', default=False)
+    parser.add_argument('-n', '--nonfree', dest='nonfree', help='build non-free/non-redist', action='store_true', default=False)
     parser.add_argument('--cflags', dest='cflags', help='add extra CFLAGS, like -march=native')
-    parser.add_argument('--static', dest='build_static', help='build static', action='store_true', default=False)
+    parser.add_argument('-s', '--static', dest='build_static', help='build static', action='store_true', default=False)
     parser.add_argument('--setup', dest='do_setup', help='do setup and exit', action='store_true', default=False)
+    parser.add_argument('--main', dest='do_main', help='do main and exit', action='store_true', default=False)
+    parser.add_argument('--ff', dest='do_ffmpeg', help='do ffmpeg and exit', action='store_true', default=False)
+    parser.add_argument('--out', dest='do_out', help='do out pack and exit', action='store_true', default=False)
     args = parser.parse_args()
 
     ffmpegb = ffmpeg_build(nonfree=args.nonfree, cflags=args.cflags, build_static=args.build_static)
 
     if args.do_setup is True:
         ffmpegb.go_setup()
+    elif args.do_main is True:
+        ffmpegb.go_main()
+    elif args.do_ffmpeg is True:
+        ffmpegb.b_ffmpeg()
+    elif args.do_out is True:
+        ffmpegb.out_pack()
     else:
         ffmpegb.run()
