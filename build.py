@@ -67,10 +67,10 @@ class ffmpeg_build():
         self.yasm = 'yasm-1.3.0'
         self.downloadList.append(self.yasm)
 
-        self.git = 'git-2.10.1'
+        self.git = 'git-2.10.2'
         self.downloadList.append(self.git)
 
-        self.cmake = 'cmake-3.6.2'
+        self.cmake = 'cmake-3.6.3'
         self.downloadList.append(self.cmake)
 
         self.zlib = 'zlib-1.2.8'
@@ -88,13 +88,14 @@ class ffmpeg_build():
         self.snappy = 'snappy-1.1.3'
         self.downloadList.append(self.snappy)
 
-        self.libpng = 'libpng-1.6.25'
+        self.libpng = 'libpng-1.6.26'
         self.downloadList.append(self.libpng)
 
-        self.openjpeg = 'openjpeg-1.5.2'  # ffmpeg works with 1.5, not 2.0
+        #self.openjpeg = 'openjpeg-1.5.2'  # ffmpeg works with 1.5, not 2.0
+        self.openjpeg = 'openjpeg-2.1.2'
         self.downloadList.append(self.openjpeg)
 
-        self.libtiff = 'tiff-4.0.3'
+        self.libtiff = 'tiff-4.0.6'
         self.downloadList.append(self.libtiff)
 
         self.libogg = 'libogg-1.3.2'
@@ -151,10 +152,10 @@ class ffmpeg_build():
         self.libilbc = 'libilbc-20141214-git-ef04ebe'
         self.downloadList.append(self.libilbc)
 
-        self.webp = 'libwebp-0.5.0'
+        self.webp = 'libwebp-0.5.1'
         self.downloadList.append(self.webp)
 
-        self.opus = 'opus-1.1.2'
+        self.opus = 'opus-1.1.3'
         self.downloadList.append(self.opus)
 
         self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
