@@ -363,8 +363,43 @@ class ffmpeg_build():
     def build_git(self):
         print('\n*** downloading git ***\n')
         os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.xz' % ''
+        fileName = '%s.tar.gz' % self.git
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+            try:
+                print('%s/%s' % (self.web_server, fileName))
+                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
+                data = response.read()
+            except urllib2.HTTPError as e:
+                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
+                sys.exit(1)
+            f = open(fileName, 'wb')
+            f.write(data)
+            f.close()
+        else:
+            print('%s already downloaded' % fileName.rstrip('.gz'))
+        self.f_sync()
 
+        print('\n*** Decompressing git ***\n')
+        os.chdir(self.BUILD_DIR)
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
+        else:
+            print('%s already uncompressed' % fileName)
+        self.f_sync()
+
+        print('\n*** Extracting git ***\n')
+        os.chdir(self.BUILD_DIR)
+        print(fileName.rstrip('.gz'))
+        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
+        tar.extractall()
+        tar.close()
+        self.f_sync()
+
+        print('\n*** Building git ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.git))
+        os.system('./configure --prefix=%s' % self.TARGET_DIR)
+        os.system('make -j %s && make install' % self.cpuCount)
+        self.f_sync()
 
     def git_clone(self, name, url):
         print('\n*** Cloning %s ***\n' % name)
@@ -394,6 +429,13 @@ class ffmpeg_build():
         for item in self.gitList:
             self.git_deploy(item[0])
         self.f_sync()
+
+    def b_cmake(self):
+        print('\n*** Building cmake ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.cmake))
+        cfgcmd = './configure --no-qt-gui --prefix=%s' % self.TARGET_DIR
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
 
     def b_zlib(self):
         print('\n*** Building zlib ***\n')
@@ -448,7 +490,6 @@ class ffmpeg_build():
         else:
             os.system('export CFLAGS="-I%s";export LDFLAGS="-L%s";./configure --prefix=%s --enable-shared=yes --enable-static=no' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.TARGET_DIR))
             os.system('export CFLAGS="-I%s";export LDFLAGS="-L%s";make -j %s && make install' % (os.path.join(self.TARGET_DIR, 'include'), os.path.join(self.TARGET_DIR, 'lib'), self.cpuCount))
-
 
     def b_libogg(self):
         print('\n*** Building libogg ***\n')
@@ -648,7 +689,6 @@ class ffmpeg_build():
         print('\n*** Building ffmpeg ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, 'ffmpeg'))
 
-
         # modify env
 
         ENV_CFLAGS_NEW = '%s' % self.ENV_CFLAGS
@@ -745,9 +785,11 @@ class ffmpeg_build():
         self.setupDIR()
         self.build_yasm()
         self.build_xz()
+        self.build_git()
         self.f_getfiles()
         self.f_decompressfiles()
         self.f_extractfiles()
+        self.b_cmake()
 
     def go_main(self):
         self.b_zlib()
