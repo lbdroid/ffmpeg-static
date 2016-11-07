@@ -157,6 +157,12 @@ class ffmpeg_build():
         self.opus = 'opus-1.1.3'
         self.downloadList.append(self.opus)
 
+        self.freetype = 'freetype-2.7'
+        self.downloadList.append(self.freetype)
+
+        self.libebur128 = 'libebur128-1.2.0'
+        self.downloadList.append(self.libebur128)
+
         self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
         self.gitList.append(['ffmpeg', self.ffmpeg])
 
@@ -228,7 +234,7 @@ class ffmpeg_build():
 
     @staticmethod
     def prewarn():
-        print('\nneeded packages:\ngcc glibc-static git cmake\n\n')
+        print('\nneeded packages:\ngcc\n\n')
         x = 2
         while x > 0:
             print(x)
@@ -360,7 +366,6 @@ class ffmpeg_build():
         fileName = '%s.tar.xz' % ''
 
 
-
     def git_clone(self, name, url):
         print('\n*** Cloning %s ***\n' % name)
         if os.path.exists(os.path.join(self.BUILD_GIT_DIR, name)):
@@ -414,7 +419,10 @@ class ffmpeg_build():
     def b_openssl(self):
         print('\n*** Building openssl ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.openssl))
-        os.system('./Configure no-shared --prefix=%s linux-x86_64' % (self.TARGET_DIR))
+        cfgcmd = './Configure --prefix=%s linux-x86_64' % (self.TARGET_DIR)
+        if self.build_static is True:
+            cfgcmd += ' no-shared'
+        os.system(cfgcmd)
         os.system('make depend')
         os.system('make -j %s && make install' % self.cpuCount)
 
@@ -507,19 +515,28 @@ class ffmpeg_build():
         os.chdir(os.path.join(self.BUILD_DIR, self.soxr))
         os.system('mkdir Release')
         os.chdir(os.path.join(self.BUILD_DIR, self.soxr, 'Release'))
-        os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DBUILD_SHARED_LIBS:bool=off ..' % self.TARGET_DIR)
+        if self.build_static is True:
+            os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DBUILD_SHARED_LIBS:bool=off ..' % self.TARGET_DIR)
+        else:
+            os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" ..' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_wavpack(self):
         print('\n*** Building wavpack ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.wavpack))
-        os.system('./configure --prefix=%s --disable-shared' % (self.TARGET_DIR))
+        cfgcmd = './configure --prefix=%s' % (self.TARGET_DIR)
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_fdkaac(self):
         print('\n*** Building fdk-aac ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.fdkaac))
-        os.system('./configure --prefix=%s --disable-shared' % (self.TARGET_DIR))
+        cfgcmd = './configure --prefix=%s' % (self.TARGET_DIR)
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_x264(self):
@@ -534,7 +551,10 @@ class ffmpeg_build():
     def b_x265(self):
         print('\n*** Build x265 ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, 'x265', 'build', 'linux'))  # for git checkout
-        os.system('cmake -G "Unix Makefiles" -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DENABLE_SHARED:bool=off ../../source' % self.TARGET_DIR)
+        if self.build_static is True:
+            os.system('cmake -G "Unix Makefiles" -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DENABLE_SHARED:bool=off ../../source' % self.TARGET_DIR)
+        else:
+            os.system('cmake -G "Unix Makefiles" -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" ../../source' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_xvid(self):
@@ -580,19 +600,48 @@ class ffmpeg_build():
     def b_libilbc(self):
         print('\n*** Building libilbc ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.libilbc))
-        os.system('./configure --disable-shared --prefix=%s' % self.TARGET_DIR)
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_webp(self):
         print('\n*** Building webp ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.webp))
-        os.system('./configure --disable-shared --prefix=%s' % self.TARGET_DIR)
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
+        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_opus(self):
         print('\n*** Building opus ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.opus))
-        os.system('./configure --disable-shared --prefix=%s' % self.TARGET_DIR)
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
+
+    def b_freetype(self):
+        print('\n*** Building freetype ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.freetype))
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --enable-shared=no'
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
+
+    def b_libebur128(self):
+        print('\n*** Building libebur128 ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.libebur128))
+        os.system('mkdir build')
+        os.chdir(os.path.join(self.BUILD_DIR, self.libebur128, 'build'))
+        if self.build_static is True:
+             os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DBUILD_SHARED_LIBS:bool=off ..' % self.TARGET_DIR)
+        else:
+             os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" ..' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_ffmpeg(self):
@@ -649,11 +698,11 @@ class ffmpeg_build():
         #confcmd += ' --enable-libgsm'  # TODO fix headers /inc
         confcmd += ' --enable-libilbc'
         confcmd += ' --enable-libwebp'
+        confcmd += ' --enable-libfreetype'
+        confcmd += ' --enable-libebur128'
         #confcfg += ' --enable-libschrodeinger'
         #confcmd += ' --disable-devices'
         #confcmd += ' --enable-lto'
-        #confcmd += ' --enable-hardcoded-tables'
-        #confcmd += ' --disable-safe-bitstream-reader'
         if self.nonfree:
             confcmd += ' --enable-nonfree'
             confcmd += ' --enable-libfdk-aac'
@@ -675,6 +724,9 @@ class ffmpeg_build():
         os.chdir(self.OUT_DIR)
         for item in ['ffmpeg', 'ffprobe', 'tiffcp', 'tiffinfo', 'qt-faststart']:
             os.system('cp -f {0} ./'.format(os.path.join(self.TARGET_DIR, 'bin', item)))
+        if self.build_static is False:
+            for item in ['libx265.so.85', 'libvpx.so.4', 'libvorbisenc.so.2', 'libvorbis.so.0', 'libtwolame.so.0', 'libtheoraenc.so.1', 'libtheoradec.so.1', 'libspeex.so.1', 'libopenjpeg.so.1', 'libmp3lame.so.0', 'liblzma.so.5', 'libz.so.1' ]:
+                os.system('cp -f {0} ./'.format(os.path.join(self.TARGET_DIR, 'lib', item)))
         os.system('strip *')
         os.chdir(self.ENV_ROOT)
         os.system('tar -cvf ./{0}.tar ./{0}'.format(self.OUT_FOLDER))
@@ -721,6 +773,8 @@ class ffmpeg_build():
         self.b_libilbc()
         self.b_webp()
         self.b_opus()
+        self.b_freetype()
+        self.b_libebur128()
         self.b_blackmagic()
         if self.nonfree:
             self.b_fdkaac()
@@ -742,7 +796,12 @@ if __name__ == '__main__':
     parser.add_argument('--nonfree', dest='nonfree', help='build non-free/non-redist', action='store_true', default=False)
     parser.add_argument('--cflags', dest='cflags', help='add extra CFLAGS, like -march=native')
     parser.add_argument('--static', dest='build_static', help='build static', action='store_true', default=False)
+    parser.add_argument('--setup', dest='do_setup', help='do setup and exit', action='store_true', default=False)
     args = parser.parse_args()
 
     ffmpegb = ffmpeg_build(nonfree=args.nonfree, cflags=args.cflags, build_static=args.build_static)
-    ffmpegb.run()
+
+    if args.do_setup is True:
+        ffmpegb.go_setup()
+    else:
+        ffmpegb.run()
