@@ -91,8 +91,7 @@ class ffmpeg_build():
         self.libpng = 'libpng-1.6.26'
         self.downloadList.append(self.libpng)
 
-        #self.openjpeg = 'openjpeg-1.5.2'  # ffmpeg works with 1.5, not 2.0
-        self.openjpeg = 'openjpeg-2.1.2'
+        self.openjpeg = 'openjpeg-1.5.2'  # ffmpeg works with 1.5, not 2.0
         self.downloadList.append(self.openjpeg)
 
         self.libtiff = 'tiff-4.0.6'
