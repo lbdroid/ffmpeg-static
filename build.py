@@ -365,8 +365,8 @@ class ffmpeg_build():
     def build_curl(self):
         print('\n*** downloading curl ***\n')
         os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.gz' % self.curl
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+        fileName = '%s.tar.xz' % self.curl
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
             try:
                 print('%s/%s' % (self.web_server, fileName))
                 response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
@@ -378,21 +378,21 @@ class ffmpeg_build():
             f.write(data)
             f.close()
         else:
-            print('%s already downloaded' % fileName.rstrip('.gz'))
+            print('%s already downloaded' % fileName.rstrip('.xz'))
         self.f_sync()
 
         print('\n*** Decompressing curl ***\n')
         os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
-            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
+            os.system('%s -v %s' % (os.path.join(self.TARGET_DIR, bin, 'xz'), os.path.join(self.TAR_DIR, fileName)))
         else:
             print('%s already uncompressed' % fileName)
         self.f_sync()
 
         print('\n*** Extracting curl ***\n')
         os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.gz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
+        print(fileName.rstrip('.xz'))
+        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.xz')))
         tar.extractall()
         tar.close()
         self.f_sync()
@@ -406,8 +406,8 @@ class ffmpeg_build():
     def build_git(self):
         print('\n*** downloading git ***\n')
         os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.gz' % self.git
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+        fileName = '%s.tar.xz' % self.git
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
             try:
                 print('%s/%s' % (self.web_server, fileName))
                 response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
@@ -419,21 +419,21 @@ class ffmpeg_build():
             f.write(data)
             f.close()
         else:
-            print('%s already downloaded' % fileName.rstrip('.gz'))
+            print('%s already downloaded' % fileName.rstrip('.xz'))
         self.f_sync()
 
         print('\n*** Decompressing git ***\n')
         os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
-            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
+            os.system('%s -v %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
         else:
             print('%s already uncompressed' % fileName)
         self.f_sync()
 
         print('\n*** Extracting git ***\n')
         os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.gz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
+        print(fileName.rstrip('.xz'))
+        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.xz')))
         tar.extractall()
         tar.close()
         self.f_sync()
@@ -447,8 +447,8 @@ class ffmpeg_build():
     def build_cmake(self):
         print('\n*** downloading cmake ***\n')
         os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.gz' % self.cmake
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+        fileName = '%s.tar.xz' % self.cmake
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
             try:
                 print('%s/%s' % (self.web_server, fileName))
                 response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
@@ -460,21 +460,21 @@ class ffmpeg_build():
             f.write(data)
             f.close()
         else:
-            print('%s already downloaded' % fileName.rstrip('.gz'))
+            print('%s already downloaded' % fileName.rstrip('.xz'))
         self.f_sync()
 
         print('\n*** Decompressing cmake ***\n')
         os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
-            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
+        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
+            os.system('%s -v %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
         else:
             print('%s already uncompressed' % fileName)
         self.f_sync()
 
         print('\n*** Extracting cmake ***\n')
         os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.gz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
+        print(fileName.rstrip('.xz'))
+        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.xz')))
         tar.extractall()
         tar.close()
         self.f_sync()
