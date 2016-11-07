@@ -490,11 +490,11 @@ class ffmpeg_build():
         if os.path.exists(os.path.join(self.BUILD_GIT_DIR, name)):
             print('git pull')
             os.chdir(os.path.join(self.BUILD_GIT_DIR, name))
-            os.system('git pull')
+            os.system('%s pull' % os.path.join(self.TARGET_DIR, 'bin', 'git'))
         else:
             print('git clone')
             os.chdir(self.BUILD_GIT_DIR)
-            os.system('git clone %s' % url)
+            os.system('%s clone %s' % (os.path.join(self.TARGET_DIR, 'bin', 'git'), url))
 
     def git_deploy(self, name):
         print('\n*** Deploy %s git to BUILD_DIR ***\n' % name)
