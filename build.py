@@ -73,11 +73,11 @@ class ffmpeg_build():
         self.openssl = 'openssl-1.0.2j'
         self.downloadList.append(self.openssl)
 
-        self.curl = 'curl-7.51.0'
-        self.downloadList.append(self.curl)
+        #self.curl = 'curl-7.51.0'
+        #self.downloadList.append(self.curl)
 
-        self.git = 'git-2.10.2'
-        self.downloadList.append(self.git)
+        #self.git = 'git-2.10.2'
+        #self.downloadList.append(self.git)
 
         self.cmake = 'cmake-3.6.3'
         self.downloadList.append(self.cmake)
@@ -261,7 +261,7 @@ class ffmpeg_build():
 
     @staticmethod
     def prewarn():
-        print('\nneeded packages:\ngcc glibc-static (libstdc++-static on some os-es)\n\n')
+        print('\nneeded packages:\ngcc git glibc-static (libstdc++-static on some os-es)\n\n')
         x = 2
         while x > 0:
             print(x)
@@ -382,11 +382,11 @@ class ffmpeg_build():
         if os.path.exists(os.path.join(self.BUILD_GIT_DIR, name)):
             print('git pull')
             os.chdir(os.path.join(self.BUILD_GIT_DIR, name))
-            os.system('%s pull' % os.path.join(self.TARGET_DIR, 'bin', 'git'))
+            os.system('git pull')
         else:
             print('git clone')
             os.chdir(self.BUILD_GIT_DIR)
-            os.system('%s clone %s' % (os.path.join(self.TARGET_DIR, 'bin', 'git'), url))
+            os.system('git clone %s' % url)
 
     def git_deploy(self, name):
         print('\n*** Deploy %s git to BUILD_DIR ***\n' % name)
@@ -781,13 +781,11 @@ class ffmpeg_build():
         self.b_xz()
         self.f_decompressfiles_xz()
         self.f_extractfiles()
-        self.b_openssl()
-        self.b_curl()
-        self.b_git()
         self.f_repo_clone()
         self.f_repo_deploy()
 
     def go_main(self):
+        self.b_openssl()
         self.b_cmake()
         self.b_zlib()
         self.b_bzip2()
