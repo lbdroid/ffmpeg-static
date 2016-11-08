@@ -780,9 +780,9 @@ class ffmpeg_build():
         os.system('mkdir build')
         os.chdir(os.path.join(self.BUILD_DIR, self.libebur128, 'build'))
         if self.build_static is True:
-             os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DBUILD_SHARED_LIBS:bool=off ..' % self.TARGET_DIR)
+            os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DBUILD_STATIC_LIBS:bool=on -DWITH_STATIC_PIC:bool=on ..' % self.TARGET_DIR)
         else:
-             os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" ..' % self.TARGET_DIR)
+            os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" -DBUILD_STATIC_LIBS:bool=off -DWITH_STATIC_PIC:bool=on ..' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_ffmpeg(self):
