@@ -682,7 +682,7 @@ class ffmpeg_build():
         os.chdir(os.path.join(self.BUILD_DIR, self.faac))
         cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
         if self.build_static is True:
-            cfgcmd = ' --enable-static --disable-shared'
+            cfgcmd += ' --enable-static --disable-shared'
         os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
