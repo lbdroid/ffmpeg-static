@@ -172,8 +172,14 @@ class ffmpeg_build():
         self.libebur128 = 'libebur128-1.2.0'
         self.downloadList.append(self.libebur128)
 
+        self.faac = 'faac-1.28'
+        self.downloadList.append(self.faac)
+
         self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
         self.gitList.append(['ffmpeg', self.ffmpeg])
+
+        self.ffmbc = 'https://github.com/bcoudurier/FFmbc.git'
+        self.gitList.append(['ffmbc', self.ffmbc])
 
         for item in self.downloadList:
             self.fileList.append('%s.tar.xz' % item)
@@ -667,6 +673,15 @@ class ffmpeg_build():
         os.system('make -j %s && make install' % self.cpuCount)
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
 
+    def b_faac(self):
+        print('\n*** Building libebur128 ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.faac))
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd = ''
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
+
     def b_ffmpeg(self):
         print('\n*** Building ffmpeg ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, 'ffmpeg'))
@@ -748,6 +763,61 @@ class ffmpeg_build():
         os.putenv('CPPFLAGS', self.ENV_CFLAGS)
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
 
+    def b_ffmbc(self):
+        print('\n*** Building ffmbc ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, 'ffmbc'))
+
+        # modify env
+
+        ENV_CFLAGS_NEW = '%s' % self.ENV_CFLAGS
+        if self.build_static is True:
+            ENV_CFLAGS_NEW += ' --static'
+        os.putenv('CFLAGS', ENV_CFLAGS_NEW)
+        os.putenv('CPPFLAGS', ENV_CFLAGS_NEW)
+        ENV_LDFLAGS_NEW = self.ENV_LDFLAGS
+        ENV_LDFLAGS_NEW += ' -fopenmp'  # openmp is needed by soxr
+        # ENV_LDFLAGS_NEW += ' -lstdc++'  # stdc++ is needed by snappy
+        os.putenv('LDFLAGS', ENV_LDFLAGS_NEW)
+
+        confcmd = ''
+        confcmd += './configure --prefix=%s' % self.TARGET_DIR
+        confcmd += ' --extra-version=static'
+        #if self.build_static is True:
+        #    confcmd += ' --pkg-config-flags="--static"'
+        confcmd += ' --enable-gpl'
+        if self.nonfree:
+            confcmd += ' --enable-nonfree'
+        if self.build_static is True:
+            confcmd += ' --enable-static'
+            confcmd += ' --disable-shared'
+        else:
+            confcmd += ' --disable-static'
+            confcmd += ' --enable-static'
+        confcmd += ' --disable-debug'
+        confcmd += ' --disable-doc'
+        confcmd += ' --enable-bzlib'
+        confcmd += ' --enable-zlib'
+        confcmd += ' --enable-libmp3lame'
+        confcmd += ' --enable-libopenjpeg'
+        confcmd += ' --enable-libvorbis'
+        confcmd += ' --enable-libtheora'
+        confcmd += ' --enable-libvpx'
+        confcmd += ' --enable-libspeex'
+        confcmd += ' --enable-libx264'
+        confcmd += ' --enable-libfaac'
+        confcmd += ' --enable-libfreetype'
+
+        os.system('make distclean')
+        os.system(confcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
+        os.system('make tools/qt-faststart')
+        os.system('cp tools/qt-faststart %s' % os.path.join(self.TARGET_DIR, 'bin'))
+
+        # restore env
+        os.putenv('CFLAGS', self.ENV_CFLAGS)
+        os.putenv('CPPFLAGS', self.ENV_CFLAGS)
+        os.putenv('LDFLAGS', self.ENV_LDFLAGS)
+
     def out_pack(self):
         os.chdir(self.OUT_DIR)
         for item in ['ffmpeg', 'ffprobe', 'tiffcp', 'tiffinfo', 'qt-faststart']:
@@ -813,6 +883,7 @@ class ffmpeg_build():
         self.b_freetype()
         self.b_fontconfig()
         self.b_libebur128()
+        self.b_faac()
         self.b_blackmagic()
         if self.nonfree:
             self.b_fdkaac()
@@ -837,6 +908,7 @@ if __name__ == '__main__':
     parser.add_argument('--setup', dest='do_setup', help='do setup and exit', action='store_true', default=False)
     parser.add_argument('--main', dest='do_main', help='do main and exit', action='store_true', default=False)
     parser.add_argument('--ff', dest='do_ffmpeg', help='do ffmpeg and exit', action='store_true', default=False)
+    parser.add_argument('--fb', dest='do_ffmbc', help='do ffmbc and exit', action='store_true', default=False)
     parser.add_argument('--out', dest='do_out', help='do out pack and exit', action='store_true', default=False)
     args = parser.parse_args()
 
@@ -848,6 +920,8 @@ if __name__ == '__main__':
         ffmpegb.go_main()
     elif args.do_ffmpeg is True:
         ffmpegb.b_ffmpeg()
+    elif args.do_ffmbc is True:
+        ffmpegb.b_ffmbc()
     elif args.do_out is True:
         ffmpegb.out_pack()
     else:
