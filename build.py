@@ -200,7 +200,7 @@ class ffmpeg_build():
         self.ENV_LDFLAGS_STD += '-L%s' % os.path.join(self.TARGET_DIR, 'lib')
         self.ENV_LDFLAGS_STATIC = ' -static -static-libgcc -static-libstdc++'
 
-        self.ENV_LDFLAGS = self.ENV_LDFLAGS
+        self.ENV_LDFLAGS = self.ENV_LDFLAGS_STD
         if self.build_static is True:
             self.ENV_LDFLAGS += self.ENV_LDFLAGS_STATIC
 
