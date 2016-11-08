@@ -59,12 +59,19 @@ class ffmpeg_build():
         self.downloadList = []
         self.downloadAuxList = []
         self.gitList = []
+        self.fileList = []
+        self.downloadListGz = []
+        self.fileListGz = []
+
 
         self.xz = 'xz-5.2.2'
-        self.downloadList.append(self.xz)
+        self.downloadListGz.append(self.xz)
 
         self.yasm = 'yasm-1.3.0'
-        self.downloadList.append(self.yasm)
+        self.downloadListGz.append(self.yasm)
+
+        self.openssl = 'openssl-1.0.2j'
+        self.downloadList.append(self.openssl)
 
         self.curl = 'curl-7.51.0'
         self.downloadList.append(self.curl)
@@ -83,9 +90,6 @@ class ffmpeg_build():
 
         self.ncurses = 'ncurses-6.0'
         self.downloadList.append(self.ncurses)
-
-        self.openssl = 'openssl-1.0.2j'
-        self.downloadList.append(self.openssl)
 
         self.snappy = 'snappy-1.1.3'
         self.downloadList.append(self.snappy)
@@ -177,11 +181,13 @@ class ffmpeg_build():
         self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
         self.gitList.append(['ffmpeg', self.ffmpeg])
 
-        self.fileList = []
+
         for item in self.downloadList:
             self.fileList.append('%s.tar.xz' % item)
         for item in self.downloadAuxList:
             self.fileList.append('%s.xz' % item)
+        for item in self.downloadListGz:
+            self.fileListGz.append('%s.tar.gz' % item)
 
     def setup_folder_vars(self):
         self.ENV_ROOT = os.getcwd()
@@ -253,7 +259,7 @@ class ffmpeg_build():
 
     @staticmethod
     def prewarn():
-        print('\nneeded packages:\ngcc\n\n')
+        print('\nneeded packages:\ngcc glibc-static (libstdc++-static on some os-es)\n\n')
         x = 2
         while x > 0:
             print(x)
@@ -264,7 +270,8 @@ class ffmpeg_build():
         print('\n*** Downloading files ***\n')
         os.chdir(self.TAR_DIR)
         for fileName in self.fileList:
-            if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
+            fileNamePre, fileNameExt = os.path.splitext(fileName)
+            if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.%s' % fileNameExt))) is False:
                 try:
                     print('%s/%s' % (self.web_server, fileName))
                     response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
@@ -276,10 +283,20 @@ class ffmpeg_build():
                 f.write(data)
                 f.close()
             else:
-                print('%s already downloaded' % fileName.rstrip('.xz'))
+                print('%s already downloaded' % fileName.rstrip('.%s' % fileNameExt))
         self.f_sync()
 
-    def f_decompressfiles(self):
+    def f_decompressfiles_gz(self):
+        print('\n*** Decompressing gz files ***\n')
+        os.chdir(self.BUILD_DIR)
+        for fileName in self.fileListGz:
+            if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
+                os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
+            else:
+                print('%s already uncompressed' % fileName)
+        self.f_sync()
+
+    def f_decompressfiles_xz(self):
         print('\n*** Decompressing xz files ***\n')
         os.chdir(self.BUILD_DIR)
         for fileName in self.fileList:
@@ -288,8 +305,31 @@ class ffmpeg_build():
             else:
                 print('%s already uncompressed' % fileName)
         self.f_sync()
+
+    def f_repo_clone(self):
+        # clone git repos
         for item in self.gitList:
             self.git_clone(item[0], item[1])
+        self.f_sync()
+
+    def f_extractfiles(self, gzipMode=False):
+        print('\n*** Extracting tar files ***\n')
+        os.chdir(self.BUILD_DIR)
+        if gzipMode is True:
+            fileList = self.fileListGz
+        else:
+            fileList = self.fileList
+        for fileName in fileList:
+            fileNamePre, fileNameExt = os.path.splitext(fileName)
+            if fileNamePre.lower().endswith('.tar'):
+                print(fileNamePre)
+                tar = tarfile.open(os.path.join(self.TAR_DIR, fileNamePre))
+                tar.extractall()
+                tar.close()
+
+    def f_repo_deploy(self):
+        for item in self.gitList:
+            self.git_deploy(item[0])
         self.f_sync()
 
     @staticmethod
@@ -297,123 +337,19 @@ class ffmpeg_build():
         print('\n*** Syncinig Hard Drive ***\n')
         os.system('sync')
 
-    def build_yasm(self):
-        print('\n*** downloading yasm ***\n')
-        os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.gz' % self.yasm
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
-            try:
-                print('%s/%s' % (self.web_server, fileName))
-                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
-                data = response.read()
-            except urllib2.HTTPError as e:
-                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
-                sys.exit(1)
-            f = open(fileName, 'wb')
-            f.write(data)
-            f.close()
-        else:
-            print('%s already downloaded' % fileName.rstrip('.gz'))
-        self.f_sync()
-
-        print('\n*** Decompressing yasm ***\n')
-        os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
-            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
-        else:
-            print('%s already uncompressed' % fileName)
-        self.f_sync()
-
-        print('\n*** Extracting yasm ***\n')
-        os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.gz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
-        tar.extractall()
-        tar.close()
-        self.f_sync()
-
+    def b_yasm(self):
         print('\n*** Building yasm ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.yasm))
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
-        self.f_sync()
 
-    def build_xz(self):
-        print('\n*** downloading xz/liblzma ***\n')
-        os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.gz' % self.xz
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
-            try:
-                print('%s/%s' % (self.web_server, fileName))
-                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
-                data = response.read()
-            except urllib2.HTTPError as e:
-                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
-                sys.exit(1)
-            f = open(fileName, 'wb')
-            f.write(data)
-            f.close()
-        else:
-            print('%s already downloaded' % fileName.rstrip('.gz'))
-        self.f_sync()
-
-        print('\n*** Decompressing xz/liblzma ***\n')
-        os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.gz'))) is False:
-            os.system('gunzip -v %s' % os.path.join(self.TAR_DIR, fileName))
-        else:
-            print('%s already uncompressed' % fileName)
-        self.f_sync()
-
-        print('\n*** Extracting xz/liblzma ***\n')
-        os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.gz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.gz')))
-        tar.extractall()
-        tar.close()
-        self.f_sync()
-
+    def b_xz(self):
         print('\n*** Building xz/liblzma ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.xz))
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
-        self.f_sync()
 
-    def build_curl(self):
-        print('\n*** downloading curl ***\n')
-        os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.xz' % self.curl
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            try:
-                print('%s/%s' % (self.web_server, fileName))
-                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
-                data = response.read()
-            except urllib2.HTTPError as e:
-                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
-                sys.exit(1)
-            f = open(fileName, 'wb')
-            f.write(data)
-            f.close()
-        else:
-            print('%s already downloaded' % fileName.rstrip('.xz'))
-        self.f_sync()
-
-        print('\n*** Decompressing curl ***\n')
-        os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
-        else:
-            print('%s already uncompressed' % fileName)
-        self.f_sync()
-
-        print('\n*** Extracting curl ***\n')
-        os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.xz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.xz')))
-        tar.extractall()
-        tar.close()
-        self.f_sync()
-
+    def b_curl(self):
         print('\n*** Building curl ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.curl))
         os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
@@ -422,41 +358,7 @@ class ffmpeg_build():
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
         self.f_sync()
 
-    def build_git(self):
-        print('\n*** downloading git ***\n')
-        os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.xz' % self.git
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            try:
-                print('%s/%s' % (self.web_server, fileName))
-                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
-                data = response.read()
-            except urllib2.HTTPError as e:
-                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
-                sys.exit(1)
-            f = open(fileName, 'wb')
-            f.write(data)
-            f.close()
-        else:
-            print('%s already downloaded' % fileName.rstrip('.xz'))
-        self.f_sync()
-
-        print('\n*** Decompressing git ***\n')
-        os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
-        else:
-            print('%s already uncompressed' % fileName)
-        self.f_sync()
-
-        print('\n*** Extracting git ***\n')
-        os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.xz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.xz')))
-        tar.extractall()
-        tar.close()
-        self.f_sync()
-
+    def b_git(self):
         print('\n*** Building git ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.git))
         os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
@@ -488,19 +390,6 @@ class ffmpeg_build():
         print('\n*** Deploy %s git to BUILD_DIR ***\n' % name)
         os.chdir(self.BUILD_GIT_DIR)
         os.system('cp -rf ./%s %s' % (name, self.BUILD_DIR))
-
-    def f_extractfiles(self):
-        print('\n*** Extracting tar files ***\n')
-        os.chdir(self.BUILD_DIR)
-        for fileName in self.fileList:
-            if fileName.rstrip('.xz').lower().endswith('.tar'):
-                print(fileName.rstrip('.xz'))
-                tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.xz')))
-                tar.extractall()
-                tar.close()
-        for item in self.gitList:
-            self.git_deploy(item[0])
-        self.f_sync()
 
     def b_zlib(self):
         print('\n*** Building zlib ***\n')
@@ -883,14 +772,18 @@ class ffmpeg_build():
         self.cleanBUILD_DIR()
         #self.cleanTAR_DIR()
         self.setupDIR()
-        self.build_yasm()
-        self.build_xz()
-        self.build_openssl()
-        self.build_curl()
-        self.build_git()
         self.f_getfiles()
-        self.f_decompressfiles()
+        self.f_decompressfiles_gz()
+        self.f_extractfiles(gzipMode=True)
+        self.b_yasm()
+        self.b_xz()
+        self.f_decompressfiles_xz()
         self.f_extractfiles()
+        self.b_openssl()
+        self.b_curl()
+        self.b_git()
+        self.f_repo_clone()
+        self.f_repo_deploy()
 
     def go_main(self):
         self.b_cmake()
