@@ -667,10 +667,6 @@ class ffmpeg_build():
     def b_zimg(self):
         print('\n*** Building zimg ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.zimg))
-        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
-        if self.build_static is True:
-            cfgcmd += ''
-        os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
     def b_ffmpeg(self):
