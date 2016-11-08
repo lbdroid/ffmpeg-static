@@ -680,7 +680,7 @@ class ffmpeg_build():
     def b_faac(self):
         print('\n*** Building faac ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.faac))
-        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        cfgcmd = './configure --without-mp4v2 --prefix=%s' % self.TARGET_DIR
         if self.build_static is True:
             cfgcmd += ' --enable-static --disable-shared'
         os.system(cfgcmd)
