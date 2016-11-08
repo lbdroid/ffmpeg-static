@@ -179,7 +179,7 @@ class ffmpeg_build():
         self.gitList.append(['ffmpeg', self.ffmpeg])
 
         self.ffmbc = 'https://github.com/bcoudurier/FFmbc.git'
-        self.gitList.append(['ffmbc', self.ffmbc])
+        self.gitList.append(['FFmbc', self.ffmbc])
 
         for item in self.downloadList:
             self.fileList.append('%s.tar.xz' % item)
