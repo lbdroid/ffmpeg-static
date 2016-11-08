@@ -856,7 +856,7 @@ class ffmpeg_build():
         for item in ['ffmpeg', 'ffprobe', 'tiffcp', 'tiffinfo', 'qt-faststart']:
             os.system('cp -f {0} ./'.format(os.path.join(self.TARGET_DIR, 'bin', item)))
         if self.build_static is False:
-            for item in ['libx265.so.85', 'libvpx.so.4', 'libvorbisenc.so.2', 'libvorbis.so.0', 'libtwolame.so.0', 'libtheoraenc.so.1', 'libtheoradec.so.1', 'libspeex.so.1', 'libopenjpeg.so.1', 'libmp3lame.so.0', 'liblzma.so.5', 'libz.so.1' ]:
+            for item in ['libx265.so.85', 'libvpx.so.4', 'libvorbisenc.so.2', 'libvorbis.so.0', 'libtwolame.so.0', 'libtheoraenc.so.1', 'libtheoradec.so.1', 'libspeex.so.1', 'libopenjpeg.so.1', 'libmp3lame.so.0', 'liblzma.so.5', 'libz.so.1', 'libssl.so.1.0.0', 'libcrypto.so.1.0.0', 'libwebp.so.6', 'libsoxr.so.0', 'libilbc.so.2', 'libfdk-aac.so.1', 'libebur128.so.1',]:
                 os.system('cp -f {0} ./'.format(os.path.join(self.TARGET_DIR, 'lib', item)))
         os.system('strip *')
         os.chdir(self.ENV_ROOT)
