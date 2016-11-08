@@ -302,10 +302,11 @@ class ffmpeg_build():
         print('\n*** Decompressing xz files ***\n')
         os.chdir(self.BUILD_DIR)
         for fileName in self.fileList:
-            if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-                os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
-            else:
-                print('%s already uncompressed' % fileName)
+            if fileName.endswith('.xz'):
+                if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
+                    os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
+                else:
+                    print('%s already uncompressed' % fileName)
         self.f_sync()
 
     def f_repo_clone(self):
