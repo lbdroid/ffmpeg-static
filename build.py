@@ -28,7 +28,7 @@ if data.count('which') > 0:
 
 class ffmpeg_build():
 
-    def __init__(self, nonfree=False, cflags='', build_static=False):
+    def __init__(self, nonfree=False, cflags='', build_static=True):
         self.nonfree = nonfree
         self.cflagsopt = cflags
         self.build_static = build_static
@@ -159,11 +159,20 @@ class ffmpeg_build():
         self.opus = 'opus-1.1.3'
         self.downloadList.append(self.opus)
 
+        self.expat = 'expat-2.2.0'
+        self.downloadList.append(self.expat)
+
         self.freetype = 'freetype-2.7'
         self.downloadList.append(self.freetype)
 
+        self.fontconfig = 'fontconfig-2.12.1'
+        self.downloadList.append(self.fontconfig)
+
         self.libebur128 = 'libebur128-1.2.0'
         self.downloadList.append(self.libebur128)
+
+        self.zimg = 'zimg-3.1.0'
+        self.downloadList.append(self.zimg)
 
         self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
         self.gitList.append(['ffmpeg', self.ffmpeg])
@@ -456,48 +465,13 @@ class ffmpeg_build():
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
         self.f_sync()
 
-    def build_cmake(self):
-        print('\n*** downloading cmake ***\n')
-        os.chdir(self.TAR_DIR)
-        fileName = '%s.tar.xz' % self.cmake
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            try:
-                print('%s/%s' % (self.web_server, fileName))
-                response = urllib2.urlopen('%s/%s' % (self.web_server, fileName))
-                data = response.read()
-            except urllib2.HTTPError as e:
-                print('error downloading %s/%s %s' % (self.web_server, fileName, e))
-                sys.exit(1)
-            f = open(fileName, 'wb')
-            f.write(data)
-            f.close()
-        else:
-            print('%s already downloaded' % fileName.rstrip('.xz'))
-        self.f_sync()
-
-        print('\n*** Decompressing cmake ***\n')
-        os.chdir(self.BUILD_DIR)
-        if os.path.exists(os.path.join(self.TAR_DIR, fileName.rstrip('.xz'))) is False:
-            os.system('%s -dv %s' % (os.path.join(self.TARGET_DIR, 'bin', 'xz'), os.path.join(self.TAR_DIR, fileName)))
-        else:
-            print('%s already uncompressed' % fileName)
-        self.f_sync()
-
-        print('\n*** Extracting cmake ***\n')
-        os.chdir(self.BUILD_DIR)
-        print(fileName.rstrip('.xz'))
-        tar = tarfile.open(os.path.join(self.TAR_DIR, fileName.rstrip('.xz')))
-        tar.extractall()
-        tar.close()
-        self.f_sync()
-
+    def b_cmake(self):
         print('\n*** Building cmake ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.cmake))
         os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
-        os.system('./configure --prefix=%s' % self.TARGET_DIR)
+        os.system('./configure --prefix=%s --parallel=%s' % (self.TARGET_DIR, self.cpuCount))
         os.system('make -j %s && make install' % self.cpuCount)
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
-        self.f_sync()
 
     def git_clone(self, name, url):
         print('\n*** Cloning %s ***\n' % name)
@@ -527,13 +501,6 @@ class ffmpeg_build():
         for item in self.gitList:
             self.git_deploy(item[0])
         self.f_sync()
-
-    def b_cmake(self):
-        print('\n*** Building cmake ***\n')
-        os.chdir(os.path.join(self.BUILD_DIR, self.cmake))
-        cfgcmd = './configure --no-qt-gui --prefix=%s' % self.TARGET_DIR
-        os.system(cfgcmd)
-        os.system('make -j %s && make install' % self.cpuCount)
 
     def b_zlib(self):
         print('\n*** Building zlib ***\n')
@@ -765,12 +732,30 @@ class ffmpeg_build():
         os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
+    def b_expat(self):
+        print('\n*** Building expat ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.expat))
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' '
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
+
     def b_freetype(self):
         print('\n*** Building freetype ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.freetype))
         cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
         if self.build_static is True:
             cfgcmd += ' --enable-shared=no'
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
+
+    def b_fontconfig(self):
+        print('\n*** Building fontconfig ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.fontconfig))
+        cfgcmd = './configure --disable-docs --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' --disable-shared'
         os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
@@ -786,6 +771,15 @@ class ffmpeg_build():
             os.system('cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" ..' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
+
+    def b_zimg(self):
+        print('\n*** Building zimg ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.zimg))
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ''
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
 
     def b_ffmpeg(self):
         print('\n*** Building ffmpeg ***\n')
@@ -810,6 +804,8 @@ class ffmpeg_build():
             confcmd += ' --pkg-config-flags="--static"'
         confcmd += ' --enable-gpl'
         confcmd += ' --enable-version3'
+        if self.nonfree:
+            confcmd += ' --enable-nonfree'
         if self.build_static is True:
             confcmd += ' --enable-static'
             confcmd += ' --disable-shared'
@@ -822,6 +818,7 @@ class ffmpeg_build():
         confcmd += ' --disable-ffplay'
         confcmd += ' --enable-bzlib'
         confcmd += ' --enable-zlib'
+        confcmd += ' --enable-lzma'
         #confcmd += ' --enable-libbluray'
         confcmd += ' --enable-libmp3lame'
         confcmd += ' --enable-libopenjpeg'
@@ -841,12 +838,13 @@ class ffmpeg_build():
         confcmd += ' --enable-libilbc'
         confcmd += ' --enable-libwebp'
         confcmd += ' --enable-libfreetype'
+        confcmd += ' --enable-libfontconfig'
         confcmd += ' --enable-libebur128'
+        confcmd += ' --enable-zimg'
         #confcfg += ' --enable-libschrodeinger'
         #confcmd += ' --disable-devices'
         #confcmd += ' --enable-lto'
         if self.nonfree:
-            confcmd += ' --enable-nonfree'
             confcmd += ' --enable-libfdk-aac'
             confcmd += ' --enable-nvenc'
             confcmd += ' --enable-openssl'
@@ -887,15 +885,15 @@ class ffmpeg_build():
         self.setupDIR()
         self.build_yasm()
         self.build_xz()
+        self.build_openssl()
         self.build_curl()
         self.build_git()
-        self.build_cmake()
         self.f_getfiles()
         self.f_decompressfiles()
         self.f_extractfiles()
-        #self.b_cmake()
 
     def go_main(self):
+        self.b_cmake()
         self.b_zlib()
         self.b_bzip2()
         self.b_ncurses()
@@ -919,8 +917,11 @@ class ffmpeg_build():
         self.b_libilbc()
         self.b_webp()
         self.b_opus()
+        self.b_expat()
         self.b_freetype()
+        self.b_fontconfig()
         self.b_libebur128()
+        self.b_zimg()
         self.b_blackmagic()
         if self.nonfree:
             self.b_fdkaac()
@@ -941,7 +942,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--nonfree', dest='nonfree', help='build non-free/non-redist', action='store_true', default=False)
     parser.add_argument('--cflags', dest='cflags', help='add extra CFLAGS, like -march=native')
-    parser.add_argument('-s', '--static', dest='build_static', help='build static', action='store_true', default=False)
+    parser.add_argument('-s', '--shared', dest='build_static', help='build shared', action='store_false', default=True)
     parser.add_argument('--setup', dest='do_setup', help='do setup and exit', action='store_true', default=False)
     parser.add_argument('--main', dest='do_main', help='do main and exit', action='store_true', default=False)
     parser.add_argument('--ff', dest='do_ffmpeg', help='do ffmpeg and exit', action='store_true', default=False)
