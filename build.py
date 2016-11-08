@@ -28,6 +28,10 @@ if data.count('which') > 0:
 
 class ffmpeg_build():
 
+    # TODO - check for git
+    # TODO - check for library file output, so we can stop build on failure
+    # TODO - have libraries build both shared and static?
+
     def __init__(self, nonfree=False, cflags='', build_static=True):
         self.nonfree = nonfree
         self.cflagsopt = cflags
@@ -674,11 +678,11 @@ class ffmpeg_build():
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
 
     def b_faac(self):
-        print('\n*** Building libebur128 ***\n')
+        print('\n*** Building faac ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.faac))
         cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
         if self.build_static is True:
-            cfgcmd = ''
+            cfgcmd = ' --enable-static --disable-shared'
         os.system(cfgcmd)
         os.system('make -j %s && make install' % self.cpuCount)
 
@@ -883,7 +887,6 @@ class ffmpeg_build():
         self.b_freetype()
         self.b_fontconfig()
         self.b_libebur128()
-        self.b_faac()
         self.b_blackmagic()
         if self.nonfree:
             self.b_fdkaac()
@@ -921,6 +924,7 @@ if __name__ == '__main__':
     elif args.do_ffmpeg is True:
         ffmpegb.b_ffmpeg()
     elif args.do_ffmbc is True:
+        ffmpegb.b_faac()
         ffmpegb.b_ffmbc()
     elif args.do_out is True:
         ffmpegb.out_pack()
