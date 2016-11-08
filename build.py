@@ -187,7 +187,9 @@ class ffmpeg_build():
         for item in self.downloadAuxList:
             self.fileList.append('%s.xz' % item)
         for item in self.downloadListGz:
-            self.fileListGz.append('%s.tar.gz' % item)
+            itemFn = '%s.tar.gz' % item
+            self.fileList.append(itemFn)
+            self.fileListGz.append(itemFn)
 
     def setup_folder_vars(self):
         self.ENV_ROOT = os.getcwd()
