@@ -196,10 +196,13 @@ class ffmpeg_build():
         self.ENV_CFLAGS = '-I%s' % (os.path.join(self.TARGET_DIR, 'include'),)
         os.putenv('CFLAGS', self.ENV_CFLAGS)
         os.putenv('CPPFLAGS', self.ENV_CFLAGS)
-        self.ENV_LDFLAGS = ''
-        self.ENV_LDFLAGS += '-L%s' % os.path.join(self.TARGET_DIR, 'lib')
+        self.ENV_LDFLAGS_STD = ''
+        self.ENV_LDFLAGS_STD += '-L%s' % os.path.join(self.TARGET_DIR, 'lib')
+        self.ENV_LDFLAGS_STATIC += ' -static -static-libgcc -static-libstdc++'
+
+        self.ENV_LDFLAGS = self.ENV_LDFLAGS
         if self.build_static is True:
-            self.ENV_LDFLAGS += '%s -static -static-libgcc -static-libstdc++' % self.ENV_LDFLAGS
+            self.ENV_LDFLAGS += self.ENV_LDFLAGS_STATIC
 
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
         os.system('export')
@@ -445,8 +448,10 @@ class ffmpeg_build():
 
         print('\n*** Building git ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.git))
+        os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
+        self.putenv('LDFLAGS', self.ENV_LDFLAGS)
         self.f_sync()
 
     def build_cmake(self):
@@ -486,8 +491,10 @@ class ffmpeg_build():
 
         print('\n*** Building cmake ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.cmake))
+        os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
+        self.putenv('LDFLAGS', self.ENV_LDFLAGS)
         self.f_sync()
 
     def git_clone(self, name, url):
