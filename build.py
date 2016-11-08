@@ -407,8 +407,10 @@ class ffmpeg_build():
 
         print('\n*** Building curl ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.curl))
+        os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
+        os.putenv('LDFLAGS', self.ENV_LDFLAGS)
         self.f_sync()
 
     def build_git(self):
@@ -451,7 +453,7 @@ class ffmpeg_build():
         os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
-        self.putenv('LDFLAGS', self.ENV_LDFLAGS)
+        os.putenv('LDFLAGS', self.ENV_LDFLAGS)
         self.f_sync()
 
     def build_cmake(self):
@@ -494,7 +496,7 @@ class ffmpeg_build():
         os.putenv('LDFLAGS', self.ENV_LDFLAGS_STD)
         os.system('./configure --prefix=%s' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
-        self.putenv('LDFLAGS', self.ENV_LDFLAGS)
+        os.putenv('LDFLAGS', self.ENV_LDFLAGS)
         self.f_sync()
 
     def git_clone(self, name, url):
