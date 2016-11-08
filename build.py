@@ -738,7 +738,7 @@ class ffmpeg_build():
         confcmd += ' --enable-libfreetype'
         confcmd += ' --enable-libfontconfig'
         confcmd += ' --enable-libebur128'
-        confcmd += ' --enable-kvazaar'
+        confcmd += ' --enable-libkvazaar'
         # confcmd += ' --enable-librtmp'
         # confcmd += ' --enable-libsnappy'
         # confcmd += ' --enable-libgsm'  # TODO fix headers /inc
