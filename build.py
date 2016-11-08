@@ -73,12 +73,6 @@ class ffmpeg_build():
         self.openssl = 'openssl-1.0.2j'
         self.downloadList.append(self.openssl)
 
-        #self.curl = 'curl-7.51.0'
-        #self.downloadList.append(self.curl)
-
-        #self.git = 'git-2.10.2'
-        #self.downloadList.append(self.git)
-
         self.cmake = 'cmake-3.6.3'
         self.downloadList.append(self.cmake)
 
@@ -91,8 +85,8 @@ class ffmpeg_build():
         self.ncurses = 'ncurses-6.0'
         self.downloadList.append(self.ncurses)
 
-        self.snappy = 'snappy-1.1.3'
-        self.downloadList.append(self.snappy)
+        #self.snappy = 'snappy-1.1.3'
+        #self.downloadList.append(self.snappy)
 
         self.libpng = 'libpng-1.6.26'
         self.downloadList.append(self.libpng)
@@ -163,6 +157,9 @@ class ffmpeg_build():
         self.opus = 'opus-1.1.3'
         self.downloadList.append(self.opus)
 
+        self.kvazaar = 'kvazaar-1.0.0'
+        self.downloadList.append(self.kvazaar)
+
         self.expat = 'expat-2.2.0'
         self.downloadList.append(self.expat)
 
@@ -175,12 +172,8 @@ class ffmpeg_build():
         self.libebur128 = 'libebur128-1.2.0'
         self.downloadList.append(self.libebur128)
 
-        self.zimg = 'zimg-3.1.0'
-        self.downloadList.append(self.zimg)
-
         self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
         self.gitList.append(['ffmpeg', self.ffmpeg])
-
 
         for item in self.downloadList:
             self.fileList.append('%s.tar.xz' % item)
@@ -335,6 +328,22 @@ class ffmpeg_build():
             self.git_deploy(item[0])
         self.f_sync()
 
+    def git_clone(self, name, url):
+        print('\n*** Cloning %s ***\n' % name)
+        if os.path.exists(os.path.join(self.BUILD_GIT_DIR, name)):
+            print('git pull')
+            os.chdir(os.path.join(self.BUILD_GIT_DIR, name))
+            os.system('git pull')
+        else:
+            print('git clone')
+            os.chdir(self.BUILD_GIT_DIR)
+            os.system('git clone %s' % url)
+
+    def git_deploy(self, name):
+        print('\n*** Deploy %s git to BUILD_DIR ***\n' % name)
+        os.chdir(self.BUILD_GIT_DIR)
+        os.system('cp -rf ./%s %s' % (name, self.BUILD_DIR))
+
     @staticmethod
     def f_sync():
         print('\n*** Syncinig Hard Drive ***\n')
@@ -377,22 +386,6 @@ class ffmpeg_build():
         os.system('./configure --prefix=%s --parallel=%s' % (self.TARGET_DIR, self.cpuCount))
         os.system('make -j %s && make install' % self.cpuCount)
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
-
-    def git_clone(self, name, url):
-        print('\n*** Cloning %s ***\n' % name)
-        if os.path.exists(os.path.join(self.BUILD_GIT_DIR, name)):
-            print('git pull')
-            os.chdir(os.path.join(self.BUILD_GIT_DIR, name))
-            os.system('git pull')
-        else:
-            print('git clone')
-            os.chdir(self.BUILD_GIT_DIR)
-            os.system('git clone %s' % url)
-
-    def git_deploy(self, name):
-        print('\n*** Deploy %s git to BUILD_DIR ***\n' % name)
-        os.chdir(self.BUILD_GIT_DIR)
-        os.system('cp -rf ./%s %s' % (name, self.BUILD_DIR))
 
     def b_zlib(self):
         print('\n*** Building zlib ***\n')
@@ -557,6 +550,16 @@ class ffmpeg_build():
             os.system('cmake -G "Unix Makefiles" -Wno-dev -DCMAKE_INSTALL_PREFIX="%s" ../../source' % self.TARGET_DIR)
         os.system('make -j %s && make install' % self.cpuCount)
 
+    def b_kvazaar(self):
+        print('\n*** Build kvazaar ***\n')
+        os.chdir(os.path.join(self.BUILD_DIR, self.kvazaar))
+        # autogen.sh?
+        cfgcmd = './configure --prefix=%s' % self.TARGET_DIR
+        if self.build_static is True:
+            cfgcmd += ' '
+        os.system(cfgcmd)
+        os.system('make -j %s && make install' % self.cpuCount)
+
     def b_xvid(self):
         print('\n*** Building xvid ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, self.xvid, 'build', 'generic'))
@@ -664,11 +667,6 @@ class ffmpeg_build():
         os.system('make -j %s && make install' % self.cpuCount)
         os.putenv('LDFLAGS', self.ENV_LDFLAGS)
 
-    def b_zimg(self):
-        print('\n*** Building zimg ***\n')
-        os.chdir(os.path.join(self.BUILD_DIR, self.zimg))
-        os.system('make -j %s && make install' % self.cpuCount)
-
     def b_ffmpeg(self):
         print('\n*** Building ffmpeg ***\n')
         os.chdir(os.path.join(self.BUILD_DIR, 'ffmpeg'))
@@ -704,34 +702,36 @@ class ffmpeg_build():
         confcmd += ' --enable-runtime-cpudetect'
         confcmd += ' --disable-doc'
         confcmd += ' --disable-ffplay'
+        confcmd += ' --disable-ffserver'
         confcmd += ' --enable-bzlib'
         confcmd += ' --enable-zlib'
         confcmd += ' --enable-lzma'
-        #confcmd += ' --enable-libbluray'
         confcmd += ' --enable-libmp3lame'
         confcmd += ' --enable-libopenjpeg'
         confcmd += ' --enable-libopus'
-        #confcmd += ' --enable-librtmp'
         confcmd += ' --enable-libvorbis'
         confcmd += ' --enable-libtheora'
         confcmd += ' --enable-libvpx'
         confcmd += ' --enable-libspeex'
         confcmd += ' --enable-libx264'
         confcmd += ' --enable-libx265'
-        #confcmd += ' --enable-libsnappy'
         confcmd += ' --enable-libsoxr'
         confcmd += ' --enable-libtwolame'
         confcmd += ' --enable-libwavpack'
-        #confcmd += ' --enable-libgsm'  # TODO fix headers /inc
         confcmd += ' --enable-libilbc'
         confcmd += ' --enable-libwebp'
         confcmd += ' --enable-libfreetype'
         confcmd += ' --enable-libfontconfig'
         confcmd += ' --enable-libebur128'
-        confcmd += ' --enable-zimg'
-        #confcfg += ' --enable-libschrodeinger'
-        #confcmd += ' --disable-devices'
-        #confcmd += ' --enable-lto'
+        confcmd += ' --enable-kvazaar'
+        # confcmd += ' --enable-librtmp'
+        # confcmd += ' --enable-libsnappy'
+        # confcmd += ' --enable-libgsm'  # TODO fix headers /inc
+        # confcmd += ' --enable-zimg'
+        # confcmd += ' --enable-libbluray'
+        # confcfg += ' --enable-libschrodeinger'
+        # confcmd += ' --disable-devices'
+        # confcmd += ' --enable-lto'
         if self.nonfree:
             confcmd += ' --enable-libfdk-aac'
             confcmd += ' --enable-nvenc'
@@ -761,6 +761,7 @@ class ffmpeg_build():
         os.system('xz -ve9 ./{0}.tar'.format(self.OUT_FOLDER))
 
     def u_striplibs(self):
+        os.system('strip %s/*' % os.path.join(self.TARGET_DIR, 'bin'))
         os.system('strip %s/*' % os.path.join(self.TARGET_DIR, 'lib'))
 
     def go_setup(self):
@@ -769,7 +770,7 @@ class ffmpeg_build():
         self.cleanOUT_DIR()
         self.cleanTARGET_DIR()
         self.cleanBUILD_DIR()
-        #self.cleanTAR_DIR()
+
         self.setupDIR()
         self.f_getfiles()
         self.f_decompressfiles_gz()
@@ -807,11 +808,11 @@ class ffmpeg_build():
         self.b_libilbc()
         self.b_webp()
         self.b_opus()
+        self.b_kvazaar()
         self.b_expat()
         self.b_freetype()
         self.b_fontconfig()
         self.b_libebur128()
-        self.b_zimg()
         self.b_blackmagic()
         if self.nonfree:
             self.b_fdkaac()
