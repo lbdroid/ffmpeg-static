@@ -12,7 +12,7 @@ Build dependencies (WIP)
 
     # Redhat 6x / Centos 6x
     $ yum groupinstall "Development Tools"
-    $ yum install git glibc-static libstdc++-static
+    $ yum install git glibc-static libstdc++-static python-argparse
     $ # EPEL required
     $ rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
     $ yum install cmake3
