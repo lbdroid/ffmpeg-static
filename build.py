@@ -179,7 +179,7 @@ class ffmpeg_build():
         self.faac = 'faac-1.28'
         self.downloadList.append(self.faac)
 
-        self.ffmpeg = 'git://source.ffmpeg.org/ffmpeg.git'
+        self.ffmpeg = 'https://github.com/lbdroid/FFmpeg.git'
         self.gitList.append(['ffmpeg', self.ffmpeg])
 
         self.ffmbc = 'https://github.com/bcoudurier/FFmbc.git'
